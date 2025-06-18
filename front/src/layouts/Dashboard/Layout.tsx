@@ -1,4 +1,3 @@
-"use client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { useEffect } from "react"
@@ -6,8 +5,9 @@ import { useDispatch } from "react-redux"
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 import { setUserLogin } from "@/redux/features/userSlice";
+import { Outlet } from "react-router-dom";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <main>
           <SidebarTrigger />
           <ModeToggle />
-          {children}
+           <Outlet />
         </main>
       </SidebarProvider>
     </ThemeProvider>
