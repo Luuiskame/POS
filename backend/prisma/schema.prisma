@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// MODELO DE TIENDAS
+// ==========================================
+model Store {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations - Una tienda tiene muchos...
+  users        User[]
+  products     Product[]
+  inventory    Inventory[]
+  transactions Transaction[]
+  customers    Customer[]
+
+  @@map("stores")
+}
+
+// ==========================================
+// MODELO DE USUARIOS/EMPLEADOS
+// ==========================================
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  role         UserRole @default(CASHIER)
+  isActive     Boolean  @default(true)
+  storeId      String   @map("store_id")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  store        Store         @relation(fields: [storeId], references: [id])
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN    // Acceso total, múltiples tiendas
+  MANAGER  // Gestión de una tienda
+  CASHIER  // Solo ventas
+}
+
+// ==========================================
+// MODELO DE CATEGORÍAS
+// ==========================================
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+// ==========================================
+// MODELO DE PROVEEDORES
+// ==========================================
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  products Product[]
+
+  @@map("suppliers")
+}
+
+// ==========================================
+// MODELO DE PRODUCTOS
+// ==========================================
+model Product {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  barcode     String? @unique  // Código de barras único
+  price       Decimal @db.Decimal(10, 2)  // Precio de venta
+  cost        Decimal @db.Decimal(10, 2)  // Costo de compra
+  isActive    Boolean @default(true)
+  
+  // Foreign Keys
+  categoryId  String? @map("category_id")
+  supplierId  String? @map("supplier_id")
+  storeId     String  @map("store_id")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  supplier         Supplier?         @relation(fields: [supplierId], references: [id])
+  store            Store             @relation(fields: [storeId], references: [id])
+  inventory        Inventory[]
+  transactionItems TransactionItem[]
+
+  @@map("products")
+}
+
+// ==========================================
+// MODELO DE INVENTARIO
+// ==========================================
+model Inventory {
+  id              String   @id @default(uuid())
+  quantity        Int
+  minStock        Int      @default(0) @map("min_stock")      // Stock mínimo para alertas
+  maxStock        Int?     @map("max_stock")                  // Stock máximo
+  lastRestockDate DateTime @default(now()) @map("last_restock_date")
+  
+  // Foreign Keys
+  productId       String   @map("product_id")
+  storeId         String   @map("store_id")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id])
+  store   Store   @relation(fields: [storeId], references: [id])
+
+  // Un producto solo puede tener un registro de inventario por tienda
+  @@unique([productId, storeId])
+  @@map("inventory")
+}
+
+// ==========================================
+// MODELO DE CLIENTES
+// ==========================================
+model Customer {
+  id        String   @id @default(uuid())
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  email     String?
+  phone     String?
+  address   String?
+  
+  // Foreign Keys
+  storeId   String   @map("store_id")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  store        Store         @relation(fields: [storeId], references: [id])
+  transactions Transaction[]
+
+  @@map("customers")
+}
+
+// ==========================================
+// MODELO DE MÉTODOS DE PAGO
+// ==========================================
+model PaymentMethod {
+  id          String  @id @default(uuid())
+  name        String  // "Efectivo", "Tarjeta", "Transferencia"
+  description String?
+  isActive    Boolean @default(true)
+
+  // Relations
+  transactions Transaction[]
+
+  @@map("payment_methods")
+}
+
+// ==========================================
+// MODELO DE TRANSACCIONES (VENTAS)
+// ==========================================
+model Transaction {
+  id              String            @id @default(uuid())
+  total           Decimal           @db.Decimal(10, 2)  // Total final
+  subtotal        Decimal           @db.Decimal(10, 2)  // Subtotal antes de impuestos
+  tax             Decimal           @default(0) @db.Decimal(10, 2)  // Impuestos
+  discount        Decimal           @default(0) @db.Decimal(10, 2)  // Descuentos
+  status          TransactionStatus @default(COMPLETED)
+  
+  // Foreign Keys
+  userId          String            @map("user_id")          // Cajero que hizo la venta
+  storeId         String            @map("store_id")         // Tienda donde se hizo
+  customerId      String?           @map("customer_id")      // Cliente (opcional)
+  paymentMethodId String            @map("payment_method_id") // Método de pago
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  user           User               @relation(fields: [userId], references: [id])
+  store          Store              @relation(fields: [storeId], references: [id])
+  customer       Customer?          @relation(fields: [customerId], references: [id])
+  paymentMethod  PaymentMethod      @relation(fields: [paymentMethodId], references: [id])
+  items          TransactionItem[]  // Items vendidos en esta transacción
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  PENDING   // En proceso
+  COMPLETED // Completada
+  CANCELLED // Cancelada
+  REFUNDED  // Reembolsada
+}
+
+// ==========================================
+// MODELO DE ITEMS DE TRANSACCIÓN
+// ==========================================
+model TransactionItem {
+  id            String  @id @default(uuid())
+  quantity      Int                                    // Cantidad vendida
+  unitPrice     Decimal @db.Decimal(10, 2) @map("unit_price")   // Precio unitario al momento de venta
+  totalPrice    Decimal @db.Decimal(10, 2) @map("total_price")  // quantity * unitPrice
+  discount      Decimal @default(0) @db.Decimal(10, 2)          // Descuento aplicado
+  
+  // Foreign Keys
+  transactionId String  @map("transaction_id")
+  productId     String  @map("product_id")
+
+  // Relations
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  product     Product     @relation(fields: [productId], references: [id])
+
+  @@map("transaction_items")
+}
