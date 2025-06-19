@@ -34,22 +34,26 @@ const userSlice = createSlice({
     },
     // getUsers eliminado porque los reducers no pueden retornar valores
     login: (
-      state,
-      action: PayloadAction<{ email: string; password: string }>
-    ) => {
-      const user = state.users.find(
-        (user) =>
-          user.email === action.payload.email &&
-          user.password === action.payload.password
-      );
+  state,
+  action: PayloadAction<{ email: string; password: string }>
+) => {
+  const user = state.users.find(
+    (user) =>
+      user.email === action.payload.email &&
+      user.password === action.payload.password
+  );
 
-      if (user) {
-        state.userLogin = user;
-        localStorage.setItem("userLogin", JSON.stringify(user));
-      } else {
-        state.userLogin = null;
-      }
-    },
+  if (user) {
+    state.userLogin = user;
+    user.isActive = true; // Marcar al usuario como activo
+    // Crear un nuevo objeto sin la propiedad password
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+    localStorage.setItem("userLogin", JSON.stringify(userWithoutPassword));
+  } else {
+    state.userLogin = null;
+  }
+},
     logoutUser: (state) => {
       state.userLogin = null;
       localStorage.removeItem("userLogin");
