@@ -6,7 +6,8 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 
 //routes
-import checkRoutes from './routes/checkroutes';
+import checkRoutes from './routes/checkRoutes';
+import authRoutes from './routes/authRoutes';
 
 // Crear instancia de Express
 export const app = express();
@@ -59,4 +60,5 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use('/api', checkRoutes)
+app.use('/api/auth', authRoutes);
 

@@ -1,3 +1,3 @@
-import checkRoutes from './checkroutes'
-
-export {checkRoutes}
+import checkRoutes from './checkRoutes'
+import authRoutes from './authRoutes'
+export {checkRoutes, authRoutes}
