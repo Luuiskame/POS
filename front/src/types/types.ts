@@ -1,20 +1,52 @@
+
+
+//* Producto
 export type Product = {
-  id: string;              // UUID o string único
+  id: number;              // UUID o string único
   name: string;
   category: string;
   price: number;
   stock: number;
-  barcode?: string;        // opcional
+  barcode: string;        // opcional
   description?: string;
 };
 
+
+
+
+//* Carrito
 export type CartItem = {
   product: Product;
   quantity: number;
-  subtotal: number; // producto.price * quantity
+  subtotal: number;
+};
+
+export type CartState = {
+  cartItems: CartItem[];
+  total: number;
+  loading: boolean;
+  error: string | null;
+};
+
+// Tipos para los payloads de las acciones
+export type AddItemPayload = {
+  product: Product;
+  quantity: number;
+};
+
+export type UpdateQuantityPayload = {
+  itemId: string;
+  newQuantity: number;
+};
+
+export type RemoveItemPayload = {
+  itemId: string;
 };
 
 
+
+
+//* Venta
 export type Sale = {
   id: string;
   date: string;              
@@ -26,6 +58,11 @@ export type Sale = {
 };
 
 
+
+
+
+
+//* Usuario
 export type User = {
   id: string;
   name: string;
@@ -35,6 +72,8 @@ export type User = {
 };
 
 
+
+//* Cliente
 export type Client = {
   id: string;
   name: string;

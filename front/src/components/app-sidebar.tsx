@@ -63,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: ArrowLeftRight,
       items: [
         { title: "Historial", url: "/dashboard/ventas" },
-        { title: "Nuevo venta", url: "/dashboard/ventas/nuevo", icon: Plus },
+        { title: "Nuevo venta", url: "/dashboard/ventas/nueva", icon: Plus },
       ],
     },
     {
