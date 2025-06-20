@@ -85,7 +85,7 @@ function App() {
             <Route
               path="store/nueva"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
                   <Nueva />
                 </ProtectedRoute>
               }
@@ -95,7 +95,7 @@ function App() {
             <Route
               path="productos"
               element={
-                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <MainProduct />
                 </ProtectedRoute>
               }

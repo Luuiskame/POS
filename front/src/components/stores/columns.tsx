@@ -82,21 +82,26 @@ export const getColumns = (
       const store = row.original;
       return (
         <DropdownMenu>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(store.id)}
-            >
-              Copiar ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <Link to={`/dashboard/store/${store.id}/edit`}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => navigator.clipboard.writeText((store.id).toString())}
+          >
+            Copiar ID
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <Link to={`/dashboard/product/${store.id}/edit`}>
             <DropdownMenuItem>
               Editar <List className="ml-1 h-4 w-4" />
             </DropdownMenuItem>
-            </Link>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </Link>
+        </DropdownMenuContent>
+      </DropdownMenu>
       );
     },
   },
