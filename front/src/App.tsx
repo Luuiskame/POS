@@ -14,7 +14,9 @@ import { selectIsHydrated, selectUserLogin } from "@/redux/features/userSlice";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { AuthProvider } from "./components/Control/AuthProvider";
-
+import EditUserPage from "./Pages/Usuarios/EditUser";
+import EditStorePage from "./Pages/Store/EditStore";
+import EditProductPage from "./Pages/Productos/EditProduct";
 
 const ProtectedRoute = ({
   children,
@@ -28,15 +30,14 @@ const ProtectedRoute = ({
 
   if (!isHydrated) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="container flex items-center justify-center h-screen ">
         <Loader2 className="h-12 w-12 animate-spin" />
       </div>
     );
   }
 
   if (!user) {
-    console.log("No user found, redirecting to login");
-    // return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (roles && !roles.includes(user.role)) {
@@ -91,6 +92,15 @@ function App() {
               }
             />
 
+            <Route
+              path="store/:id/edit"
+              element={
+                <ProtectedRoute roles={["admin", "manager"]}>
+                  <EditStorePage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Productos */}
             <Route
               path="productos"
@@ -109,6 +119,15 @@ function App() {
               }
             />
 
+            <Route
+              path="productos/:id/edit"
+              element={
+                <ProtectedRoute roles={["admin", "manager"]}>
+                  <EditProductPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Usuarios */}
             <Route
               path="usuarios"
@@ -123,6 +142,14 @@ function App() {
               element={
                 <ProtectedRoute roles={["admin"]}>
                   <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="usuarios/:id/edit"
+              element={
+                <ProtectedRoute roles={["admin"]}>
+                  <EditUserPage />
                 </ProtectedRoute>
               }
             />
