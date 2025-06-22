@@ -4,7 +4,7 @@ import { app } from './src/app';
 // Cargar variables de entorno
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Iniciar servidor
 app.listen(PORT, () => {

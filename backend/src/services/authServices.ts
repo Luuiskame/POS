@@ -6,7 +6,7 @@ import {
   AuthUser, 
   JWTPayload,
   TokenPair 
-} from '../types/auth';
+} from '../types/authTypes';
 
 import { generateTokenPair } from '../utils/jwt';
 

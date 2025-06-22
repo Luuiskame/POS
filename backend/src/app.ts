@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import cookieParser from 'cookie-parser';
 
 //routes
 import checkRoutes from './routes/checkRoutes';
@@ -21,6 +22,8 @@ export const prisma = new PrismaClient();
 
 // Helmet - Headers de seguridad
 app.use(helmet());
+// Cookie Parser - Para manejar cookies
+app.use(cookieParser());
 
 // CORS - Para permitir requests desde el frontend
 app.use(cors({

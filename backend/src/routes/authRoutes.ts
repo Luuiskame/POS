@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { createStore, getStore } from "../controllers/authController"; 
+import { createStore, login, logout } from "../controllers/authController"; 
+import { verifyToken } from "../middleware/authMiddlewares";
 
 const router = Router();
 
-// console.log(typeof createStore); // ✅ Esto ahora funciona
+router.post("/create-store", createStore);
+router.post("/login", login); 
+router.get("/logout", logout);
 
-// router.post("/create-store"); // ✅ Esto ahora funciona
-router.post("/create-store", getStore);
+router.get("/verify-token", verifyToken, (req, res) => {
+  res.status(200).json({ message: "Token válido", user: req.user })
+});
 
 export default router;

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Response } from 'express';
-import { JWTPayload, TokenPair, CookieConfig } from '../types/auth';
+import { JWTPayload, TokenPair, CookieConfig } from '../types/authTypes';
+import { sign, Secret, SignOptions } from 'jsonwebtoken';
 
 // ========================================
 // JWT UTILITIES
@@ -9,27 +10,33 @@ import { JWTPayload, TokenPair, CookieConfig } from '../types/auth';
 /**
  * Genera un access token (corta duración)
  */
-export const generateAccessToken = (payload: Omit<JWTPayload, 'iat' | 'exp'>): string => {
+export const generateAccessToken = (
+  payload: Omit<JWTPayload, 'iat' | 'exp'>
+): string => {
   const secret = process.env.JWT_ACCESS_SECRET;
-  const expiresIn = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
-  
+
   if (!secret) {
     throw new Error('JWT_ACCESS_SECRET no está configurado');
   }
 
-  return jwt.sign(payload, secret, { 
+   const expiresIn = (process.env.JWT_ACCESS_EXPIRES_IN || '15m') as SignOptions['expiresIn'];
+
+  const options: SignOptions = {
     expiresIn,
     issuer: 'pos-app',
     audience: 'pos-users'
-  });
+  };
+
+  return sign(payload, secret as Secret, options);
 };
+
 
 /**
  * Genera un refresh token (larga duración)
  */
 export const generateRefreshToken = (payload: Omit<JWTPayload, 'iat' | 'exp'>): string => {
   const secret = process.env.JWT_REFRESH_SECRET;
-  const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+   const expiresIn = (process.env.JWT_ACCESS_EXPIRES_IN || '7d') as SignOptions['expiresIn'];
   
   if (!secret) {
     throw new Error('JWT_REFRESH_SECRET no está configurado');
@@ -96,9 +103,7 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
 // COOKIE UTILITIES
 // ========================================
 
-/**
- * Configuración segura para access token cookie
- */
+
 export const getAccessTokenCookieConfig = (): CookieConfig => ({
   httpOnly: true, // No accesible via JavaScript
   secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
@@ -140,9 +145,7 @@ export const clearAuthCookies = (res: Response): void => {
   res.clearCookie('refreshToken', { path: '/api/auth' });
 };
 
-/**
- * Extrae token de las cookies o headers
- */
+
 export const extractTokenFromRequest = (req: any): string | null => {
   // Primero intentar desde cookies
   if (req.cookies?.accessToken) {
@@ -150,10 +153,10 @@ export const extractTokenFromRequest = (req: any): string | null => {
   }
   
   // Fallback: desde Authorization header
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7);
-  }
+  // const authHeader = req.headers.authorization;
+  // if (authHeader && authHeader.startsWith('Bearer ')) {
+  //   return authHeader.substring(7);
+  // }
   
   return null;
 };

@@ -29,38 +29,69 @@ export const createStore = async (req: Request, res: Response) => {
     });
 
     // 2. Generar tokens
-    const tokens = AuthService.login
-      ? await AuthService.login({ email: user.email, password: userPassword }) // En caso de login auto
-      : generateTokenPair({
-          userId: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          storeId: user.storeId
-        });
+    const { user: loggedUser, tokens } = await AuthService.login({
+      email: user.email,
+      password: userPassword
+});
 
     // 3. Establecer cookies
-    setAuthCookies(res, tokens.tokens);
+    setAuthCookies(res, tokens);
 
     // 4. Respuesta
-    return res.status(201).json({
+    res.status(201).json({
       message: 'Tienda y usuario creados exitosamente',
-      user: tokens.user
+      user: loggedUser,
+      tokens
     });
 
   } catch (error: any) {
-    console.error('Error en createStore:', error);
-    return res.status(500).json({
+    console.error('Error en createStore:', error.message);
+    res.status(500).json({
       message: error.message || 'Error al crear la tienda'
     });
   }
 };
 
-export const getStore = async (req: Request, res: Response) => {
-  
-}
-function generateTokenPair(arg0: { userId: string; email: string; firstName: string; lastName: string; role: string; storeId: string; }) {
-  throw new Error('Function not implemented.');
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Iniciar sesión
+    const { user, tokens } = await AuthService.login({ email, password });
+
+    // 2. Establecer cookies
+    setAuthCookies(res, tokens);
+
+    // 3. Respuesta
+    res.status(200).json({
+      message: 'Inicio de sesión exitoso',
+      user,
+      tokens
+    });
+
+  } catch (error: any) {
+    console.error('Error en login:', error.message);
+    res.status(401).json({
+      message: error.message || 'Credenciales inválidas'
+    });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    // Limpiar cookies de autenticación
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/api/auth' });
+
+    // Respuesta de éxito
+    res.status(200).json({
+      message: 'Sesión cerrada exitosamente'
+    });
+  } catch (error: any) {
+    console.error('Error en logout:', error.message);
+    res.status(500).json({
+      message: error.message || 'Error al cerrar sesión'
+    });
+  }
 }
 
