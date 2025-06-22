@@ -8,6 +8,7 @@ export type loginData = {
 export type userState = {
   users: User[];
   userLogin: User;
+  isHydrated: boolean;
 };
 
 export type productState = {
