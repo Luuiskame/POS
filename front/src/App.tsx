@@ -26,7 +26,6 @@ const ProtectedRoute = ({
   roles?: string[];
 }) => {
   const user = useSelector(selectUserLogin);
-  console.log("User in ProtectedRoute:", user);
   const isHydrated = useSelector(selectIsHydrated);
 
   if (!isHydrated) {
@@ -69,7 +68,7 @@ function App() {
             <Route
               path="ventas/nueva"
               element={
-                <ProtectedRoute roles={["ADMIN", "MANAGER", "CASHIER"]}>
+                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
                   <MainVentas />
                 </ProtectedRoute>
               }
@@ -79,7 +78,7 @@ function App() {
             <Route
               path="store"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
+                <ProtectedRoute roles={["admin"]}>
                   <Store />
                 </ProtectedRoute>
               }
@@ -87,7 +86,7 @@ function App() {
             <Route
               path="store/nueva"
               element={
-                <ProtectedRoute roles={["ADMIN", "MANAGER", "CASHIER"]}>
+                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
                   <Nueva />
                 </ProtectedRoute>
               }
@@ -96,7 +95,7 @@ function App() {
             <Route
               path="store/:id/edit"
               element={
-                <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <EditStorePage />
                 </ProtectedRoute>
               }
@@ -114,7 +113,7 @@ function App() {
             <Route
               path="productos/nuevo"
               element={
-                <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <Nuevo />
                 </ProtectedRoute>
               }
@@ -123,7 +122,7 @@ function App() {
             <Route
               path="productos/:id/edit"
               element={
-                <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <EditProductPage />
                 </ProtectedRoute>
               }
@@ -133,7 +132,7 @@ function App() {
             <Route
               path="usuarios"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
+                <ProtectedRoute roles={["admin"]}>
                   <MainUsers />
                 </ProtectedRoute>
               }
@@ -141,7 +140,7 @@ function App() {
             <Route
               path="usuarios/nuevo"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
+                <ProtectedRoute roles={["admin"]}>
                   <AdminUsersPage />
                 </ProtectedRoute>
               }
@@ -149,7 +148,7 @@ function App() {
             <Route
               path="usuarios/:id/edit"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
+                <ProtectedRoute roles={["admin"]}>
                   <EditUserPage />
                 </ProtectedRoute>
               }

@@ -36,28 +36,7 @@ const userSlice = createSlice({
       state.users = state.users.filter((user) => user.id !== userId);
       localStorage.setItem("users", JSON.stringify(state.users));
     },
-    // getUsers eliminado porque los reducers no pueden retornar valores
-    login: (
-  state,
-  action: PayloadAction<{ email: string; password: string }>
-) => {
-  const user = state.users.find(
-    (user) =>
-      user.email === action.payload.email &&
-      user.password === action.payload.password
-  );
-
-  if (user) {
-    state.userLogin = user;
-    user.isActive = true; // Marcar al usuario como activo
-    // Crear un nuevo objeto sin la propiedad password
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
-    localStorage.setItem("userLogin", JSON.stringify(userWithoutPassword));
-  } else {
-    state.userLogin = null;
-  }
-},
+   
     logoutUser: (state) => {
       state.userLogin = null;
       localStorage.removeItem("userLogin");
@@ -86,7 +65,6 @@ export const {
   setUsers,
   addUser,
   removeUser,
-  login,
   logoutUser,
   setUserLogin,
 } = userSlice.actions;
