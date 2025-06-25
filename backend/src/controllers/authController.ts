@@ -83,7 +83,6 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie('accessToken', { path: '/' });
     res.clearCookie('refreshToken', { path: '/api/auth' });
 
-    // Respuesta de éxito
     res.status(200).json({
       message: 'Sesión cerrada exitosamente'
     });
@@ -94,4 +93,32 @@ export const logout = async (req: Request, res: Response) => {
     });
   }
 }
+
+export const createSuperAdmin = async (req: Request, res: Response) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
+
+    // 1. Crear superadmin
+    const user  = await AuthService.createSuperAdmin({
+      email,
+      password,
+      firstName,
+      lastName,
+      role: 'superadmin',
+      storeId: '7c8ba34e-a700-4863-b5a9-83afc997f774' 
+    });
+
+    // 3. Respuesta
+    res.status(201).json({
+      message: 'Superadmin creado exitosamente',
+      user
+    });
+
+  } catch (error: any) {
+    console.error('Error en createSuperAdmin:', error.message);
+    res.status(500).json({
+      message: error.message || 'Error al crear el superadmin'
+    });
+  }
+};
 
