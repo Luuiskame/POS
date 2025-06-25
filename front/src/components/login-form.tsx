@@ -9,27 +9,37 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "@/redux/hooks";
-import { login } from "@/redux/features/userSlice";
+import { useLoginMutation } from "@/redux/services/authApi"
+import { setUserLogin } from "@/redux/features/userSlice"
+import { useDispatch } from "react-redux"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [logInMutation] = useLoginMutation()
   const { register, handleSubmit, formState: { errors } } = useForm<{
     email: string;
     password: string;
   }>();
 
-  const onSubmit = handleSubmit((data) => {
-    dispatch(login(data));
-    navigate("/dashboard");
-  });
+
+  const onSubmit = async (data: {email: string; password: string}) => {
+    try {
+      const response = await logInMutation(data).unwrap()
+      if (response?.user.id) {
+        dispatch(setUserLogin(response.user));
+        localStorage.setItem("userLogin", JSON.stringify(response.user));
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.log("Login failed:", error);
+    }
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -41,7 +51,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-6">
               <div className="grid gap-6">
                 <div className="grid gap-3">
