@@ -64,11 +64,15 @@ export type Sale = {
 
 //* Usuario
 export type User = {
-  id: string;
+id: string;                // UUID o string único
+  email: string;           // único
+  password: string;        // hash
   name: string;
-  role: "admin" | "seller";
-  email: string;
-  password: string;  
+  role: "admin" | "manager" | "cashier";
+  isActive: boolean;
+  storeId: string;         // ID de la tienda
+  createdAt: string;       // fecha de creación
+  updatedAt: string;       // fecha de actualización
 };
 
 
@@ -79,4 +83,18 @@ export type Client = {
   name: string;
   email?: string;
   phone?: string;
+};
+
+
+
+
+//*stores
+export type Stores = {
+  id: string;               // UUID o string único
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  createdAt: string;        
+  updatedAt: string;        
 };

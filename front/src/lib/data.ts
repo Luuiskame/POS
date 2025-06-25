@@ -1,4 +1,4 @@
-import type { Product, User } from "@/types/types";
+import type { Product, User, Stores } from "@/types/types";
 
 // Productos con códigos de barras
 export const productos : Product[] = [
@@ -22,13 +22,54 @@ export const users: User[] = [
     name: "María González",
     role: "admin",
     email: "maria.gonzalez@tienda.com",
-    password: "AdminSecure123!"
+    password: "AdminSecure123!", 
+    storeId: "s1a2b3c4-d5e6-7890", 
+    createdAt: "2025-06-16",
+    updatedAt: "2025-06-16",
+    isActive: false
   },
   {
     id: "v2b3c4d5-e6f7-8901",
     name: "Carlos Mendoza",
-    role: "seller",
+    role: "manager",
     email: "carlos.mendoza@tienda.com",
-    password: "Vendedor456$"
+    password: "Vendedor456$",
+    storeId: "s1a2b3c4-d5e6-7890", 
+    createdAt: "2025-17-16",
+    updatedAt: "2025-17-16",
+    isActive: false
+  },
+  {
+    id: "c2b3c4d5-e6f7-8901",
+    name: "Juan Perez",
+    role: "cashier",
+    email: "juan.perez@tienda.com",
+    password: "Vendedor456$",
+    storeId: "s1a2b3c4-d5e6-7890", 
+    createdAt: "2025-17-16",
+    updatedAt: "2025-17-16",
+    isActive: false
+  }
+];
+
+
+export const store : Stores[] = [
+  {
+    id: "s1a2b3c4-d5e6-7890",
+    name: "Tienda de Juan Perez",
+    address: "Calle de Juan Perez, 123",
+    phone: "123456789",
+    email: "juan.perez@tienda.com",
+    createdAt: "2025-06-16",
+    updatedAt: "2025-06-16",
+  },
+  {
+    id: "s2b3c4d5-e6f7-8901",
+    name: "Tienda de Carlos Mendoza",
+    address: "Calle de Carlos Mendoza, 123",
+    phone: "123456789",
+    email: "carlos.mendoza@tienda.com",
+    createdAt: "2025-06-16",
+    updatedAt: "2025-06-16",
   }
 ];
