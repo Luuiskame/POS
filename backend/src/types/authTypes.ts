@@ -13,7 +13,7 @@ export interface RegisterCredentials {
     password: string;
     firstName: string;
     lastName: string;
-    role: 'cashiser' | 'admin' | 'manager' | 'superadmin';
+    role: 'cashier' | 'admin' | 'manager' | 'superadmin';
     storeId: string;
 }
 

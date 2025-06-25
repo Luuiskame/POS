@@ -53,10 +53,10 @@ export class AuthService {
         const user = await tx.user.create({
           data: {
             email: storeData.userEmail,
-            passwordHash: hashedPassword, // ⭐ Nota: passwordHash
+            passwordHash: hashedPassword, 
             firstName: storeData.userFirstName,
             lastName: storeData.userLastName,
-            role: 'ADMIN', // Usuario admin de la tienda
+            role: 'admin', 
             storeId: store.id
           },
           include: {

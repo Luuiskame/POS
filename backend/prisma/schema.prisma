@@ -38,7 +38,7 @@ model User {
   passwordHash String   @map("password_hash")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
-  role         UserRole @default(CASHIER)
+  role         UserRole @default(cashier)
   isActive     Boolean  @default(true)
   storeId      String   @map("store_id")
   createdAt    DateTime @default(now())
