@@ -1,7 +1,9 @@
 // src/controllers/authController.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authServices';
+import { AuthUser } from '../types/authTypes';
 import { setAuthCookies } from '../utils/jwt';
+import { UserService } from '../services/userServices';
 
 export const createStore = async (req: Request, res: Response) => {
   try {
@@ -48,6 +50,52 @@ export const createStore = async (req: Request, res: Response) => {
     console.error('Error en createStore:', error.message);
     res.status(500).json({
       message: error.message || 'Error al crear la tienda'
+    });
+  }
+};
+
+
+export const createUserInStore = async (req: Request, res: Response) => {
+  try {
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      storeId
+    } = req.body;
+
+    // 1. Registrar usuario en tienda existente
+    const user = await UserService.registerUser({
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      storeId
+    });
+
+    // 2. Generar tokens
+    const { user: loggedUser, tokens } = await AuthService.login({
+      email: user.email,
+      password
+    });
+
+    // 3. Establecer cookies
+    setAuthCookies(res, tokens);
+
+    // 4. Respuesta
+    res.status(201).json({
+      message: 'Usuario registrado exitosamente en la tienda',
+      user: loggedUser,
+      tokens
+    });
+
+  } catch (error: any) {
+    console.error('Error en createUserInStore:', error.message);
+    res.status(500).json({
+      message: error.message || 'Error al registrar el usuario'
     });
   }
 };
@@ -99,7 +147,7 @@ export const createSuperAdmin = async (req: Request, res: Response) => {
     const { email, password, firstName, lastName } = req.body;
 
     // 1. Crear superadmin
-    const user  = await AuthService.createSuperAdmin({
+    const user  = await UserService.createSuperAdmin({
       email,
       password,
       firstName,

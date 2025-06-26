@@ -10,6 +10,9 @@ import cookieParser from 'cookie-parser';
 import checkRoutes from './routes/checkRoutes';
 import authRoutes from './routes/authRoutes';
 
+//admin routes
+import adminRoutes from './routes/adminRoutes';
+
 // Crear instancia de Express
 export const app = express();
 
@@ -64,4 +67,5 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use('/api', checkRoutes)
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
