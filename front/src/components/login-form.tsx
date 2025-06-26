@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/redux/services/authApi"
 import { setUserLogin } from "@/redux/features/userSlice"
 import { useDispatch } from "react-redux"
+import { EyeClosed, EyeIcon } from "lucide-react"
+import React from "react"
 
 export function LoginForm({
   className,
@@ -27,6 +29,7 @@ export function LoginForm({
     password: string;
   }>();
 
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const onSubmit = async (data: {email: string; password: string}) => {
     try {
@@ -75,13 +78,24 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
+                 <div className="relative flex items-center">
+
                   <Input 
                     id="password" 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     required 
                     {...register("password", { required: "Contraseña es requerida" })}
                   />
                   {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
+                  <Button
+                    variant="outline"
+                    className="w-1/6"
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeClosed className="h-4 w-4" /> : <EyeIcon  className="h-4 w-4" />}
+                  </Button>
+                    </div>
                 </div>
                 <Button type="submit" className="w-full">
                   Login

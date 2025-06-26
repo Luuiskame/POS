@@ -1,19 +1,15 @@
-"use client"
+"use client";
 
 import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Sparkles,
-} from "lucide-react"
+  Store,
+} from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,37 +18,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { logoutUser } from "@/redux/features/userSlice"
-import { useAppDispatch } from "@/redux/hooks"
-import { useNavigate } from "react-router-dom"
+} from "@/components/ui/sidebar";
+import { logoutUser } from "@/redux/features/userSlice";
+import { useAppDispatch } from "@/redux/hooks";
+import { Link, useNavigate } from "react-router-dom";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-
-    const  handleSubmit = () =>{
-      dispatch(logoutUser());
-      navigate("/");
-    };
-  
+  const handleSubmit = () => {
+    dispatch(logoutUser());
+    navigate("/");
+  };
 
   return (
     <SidebarMenu>
@@ -106,8 +100,8 @@ export function NavUser({
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCard />
-                Billing
+                <Store />
+                <Link to="/dashboard/mis-negocios">Mis negocios</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
@@ -123,5 +117,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
