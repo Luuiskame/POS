@@ -40,12 +40,12 @@ model User {
   lastName     String   @map("last_name")
   role         UserRole @default(cashier)
   isActive     Boolean  @default(true)
-  storeId      String   @map("store_id")
+  storeId      String?  @map("store_id")  // Made optional for users not yet assigned
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
-  store        Store         @relation(fields: [storeId], references: [id])
+  store        Store?        @relation(fields: [storeId], references: [id])
   transactions Transaction[]
 
   @@map("users")

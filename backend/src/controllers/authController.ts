@@ -15,7 +15,8 @@ export const createStore = async (req: Request, res: Response) => {
       userEmail,
       userPassword,
       userFirstName,
-      userLastName
+      userLastName,
+      role
     } = req.body;
 
     // 1. Registrar tienda y usuario
@@ -27,7 +28,8 @@ export const createStore = async (req: Request, res: Response) => {
       userEmail,
       userPassword,
       userFirstName,
-      userLastName
+      userLastName,
+      role
     });
 
     // 2. Generar tokens

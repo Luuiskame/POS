@@ -3,10 +3,12 @@ import { prisma } from '../app';
 import { 
   LoginCredentials, 
   RegisterCredentials, 
-  AuthUser, 
   JWTPayload,
-  TokenPair 
+  TokenPair,
+  UserRole,
+  AuthUser,
 } from '../types/authTypes';
+
 
 import { generateTokenPair } from '../utils/jwt';
 
@@ -22,6 +24,7 @@ export class AuthService {
     userPassword: string;
     userFirstName: string;
     userLastName: string;
+    role: UserRole;
   }): Promise<{ store: any; user: AuthUser }> {
     
     try {
@@ -56,7 +59,7 @@ export class AuthService {
             passwordHash: hashedPassword, 
             firstName: storeData.userFirstName,
             lastName: storeData.userLastName,
-            role: 'admin', 
+            role: storeData.role, 
             storeId: store.id
           },
           include: {
@@ -73,9 +76,9 @@ export class AuthService {
         email: result.user.email,
         firstName: result.user.firstName,
         lastName: result.user.lastName,
-        role: result.user.role,
+        role: result.user.role as UserRole,
         storeId: result.user.storeId,
-        store: result.user.store.name,
+        store: result.user.store?.name || null,
         createdAt: result.user.createdAt,
         updatedAt: result.user.updatedAt
       };
@@ -88,62 +91,110 @@ export class AuthService {
     }
   }
 
+  // associate existing user with existing store and set role
+  static async associateUserToStore(userId: string, storeId: string, role: UserRole): Promise<AuthUser> {
+    try {
+      // 1. Verificar que el usuario existe
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
 
-  // associate existing user with existing store
-  static async associateUserToStore(userId: string, storeId: string): Promise<AuthUser> {
-  try {
-    // 1. Verificar que el usuario existe
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      throw new Error('El usuario no existe');
-    }
-
-    // 2. Verificar que la tienda existe
-    const store = await prisma.store.findUnique({
-      where: { id: storeId }
-    });
-
-    if (!store) {
-      throw new Error('La tienda no existe');
-    }
-
-    // 3. Asociar usuario a la tienda
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        storeId: storeId
-      },
-      include: {
-        store: true
+      if (!user) {
+        throw new Error('El usuario no existe');
       }
-    });
 
-    // 4. Formatear y retornar usuario
-    const authUser: AuthUser = {
-      id: updatedUser.id,
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      role: updatedUser.role,
-      storeId: updatedUser.storeId,
-      store: updatedUser.store?.name,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt
-    };
+      // 2. Verificar que la tienda existe
+      const store = await prisma.store.findUnique({
+        where: { id: storeId }
+      });
 
-    return authUser;
+      if (!store) {
+        throw new Error('La tienda no existe');
+      }
 
-  } catch (error) {
-    console.error('Error asociando usuario a tienda:', error);
-    throw error;
+      // 3. Asociar usuario a la tienda y establecer el rol
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          storeId: storeId,
+          role: role // Set the role for this specific store
+        },
+        include: {
+          store: true
+        }
+      });
+
+      // 4. Formatear y retornar usuario
+      const authUser: AuthUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role as UserRole,
+        storeId: updatedUser.storeId,
+        store: updatedUser.store?.name || null,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt
+      };
+
+      return authUser;
+
+    } catch (error) {
+      console.error('Error asociando usuario a tienda:', error);
+      throw error;
+    }
   }
-}
 
+  // Create user without store assignment (can be assigned later)
+  static async createUser(data: RegisterCredentials): Promise<AuthUser> {
+    try {
+      // 1. Verificar que el email no exista
+      const existingUser = await prisma.user.findUnique({
+        where: { email: data.email }
+      });
 
-  static  async createSuperAdmin (data: RegisterCredentials): Promise<AuthUser> {
+      if (existingUser) {
+        throw new Error('El email ya está registrado');
+      }
+
+      // 2. Hashear contraseña
+      const hashedPassword = await bcrypt.hash(data.password, 12);
+
+      // 3. Crear usuario
+      const user = await prisma.user.create({
+        data: {
+          email: data.email,
+          passwordHash: hashedPassword,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          role: data.role || 'cashier', // Default to cashier if not specified
+          storeId: data.storeId || null // Can be null initially
+        },
+        include: {
+          store: true
+        }
+      });
+
+      // 4. Retornar usuario formateado
+      return {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role as UserRole,
+        storeId: user.storeId,
+        store: user.store?.name || null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      };
+
+    } catch (error) {
+      console.error('Error creando usuario:', error);
+      throw error;
+    }
+  }
+
+  static async createSuperAdmin(data: RegisterCredentials): Promise<AuthUser> {
     try {
       // 1. Verificar que el email no exista
       const existingUser = await prisma.user.findUnique({
@@ -164,8 +215,8 @@ export class AuthService {
           passwordHash: hashedPassword,
           firstName: data.firstName,
           lastName: data.lastName,
-          role: data.role,
-          storeId: data.storeId
+          role: 'superadmin', // Force superadmin role
+          storeId: null // Superadmin doesn't belong to a specific store
         }
       });
 
@@ -175,9 +226,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as UserRole,
         storeId: user.storeId,
-        store: 'The superadmin store', // Superadmin no tiene tienda
+        store: null, // Superadmin doesn't have a specific store
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };
@@ -189,7 +240,7 @@ export class AuthService {
   }
 
   /**
-   * 3. LOGIN - Autenticar usuario
+   * LOGIN - Autenticar usuario
    */
   static async login(credentials: LoginCredentials): Promise<{ user: AuthUser; tokens: TokenPair }> {
     try {
@@ -216,7 +267,7 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as UserRole,
         storeId: user.storeId
       };
 
@@ -229,9 +280,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as UserRole,
         storeId: user.storeId,
-        store: user.store.name,
+        store: user.store?.name || null,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };
@@ -245,7 +296,7 @@ export class AuthService {
   }
 
   /**
-   * 4. REFRESCAR TOKENS
+   * REFRESCAR TOKENS
    */
   static async refreshTokens(userId: string): Promise<{ user: AuthUser; tokens: TokenPair }> {
     try {
@@ -265,7 +316,7 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as UserRole,
         storeId: user.storeId
       };
 
@@ -278,9 +329,9 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role as UserRole,
         storeId: user.storeId,
-        store: user.store.name,
+        store: user.store?.name || null,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };

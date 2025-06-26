@@ -57,7 +57,7 @@ export class UserService {
         lastName: user.lastName,
         role: user.role,
         storeId: user.storeId,
-        store: user.store.name,
+        store: user.store?.name || null, // Nombre de la tienda o null si no tiene
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };

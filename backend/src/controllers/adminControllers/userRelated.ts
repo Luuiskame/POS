@@ -3,9 +3,9 @@ import { AuthService } from '../../services/authServices';
 
 export const associateUserToStore = async (req: Request, res: Response) => {
   try {
-    const { userId, storeId } = req.body;
+    const { userId, storeId, role } = req.body;
 
-    const user = await AuthService.associateUserToStore(userId, storeId);
+    const user = await AuthService.associateUserToStore(userId, storeId, role);
 
     res.status(200).json({
       message: 'Usuario asociado exitosamente a la tienda',
