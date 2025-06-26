@@ -1,5 +1,6 @@
 import Cards from "@/components/dashboard/Cards"
-import ChartAreaInteractive from "@/components/dashboard/CharVentas"
+import { ChartAreaInteractive } from "@/components/dashboard/CharVentas"
+
 
 
 
