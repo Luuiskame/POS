@@ -1,5 +1,7 @@
 import { Request } from 'express';
 
+// User roles enum to match Prisma schema
+export type UserRole = 'superadmin' | 'admin' | 'manager' | 'cashier';
 
 // Para LOGIN solo necesitamos email y password
 export interface LoginCredentials {
@@ -13,8 +15,24 @@ export interface RegisterCredentials {
     password: string;
     firstName: string;
     lastName: string;
-    role: 'cashier' | 'admin' | 'manager' | 'superadmin';
+    role?: UserRole; // Optional since it defaults to cashier in schema
+    storeId?: string; // Optional since user can be created without store assignment
+}
+
+// Para asociar usuario a tienda con rol específico
+export interface AssociateUserToStoreRequest {
+    userId: string;
     storeId: string;
+    role: UserRole;
+}
+
+// Store relationship info for users
+export interface UserStoreInfo {
+    id: string; // UserStore relation ID
+    storeId: string;
+    storeName: string;
+    role: UserRole;
+    isActive: boolean;
 }
 
 // Payload que va dentro del JWT - información esencial
@@ -23,27 +41,35 @@ export interface JWTPayload {
     email: string;
     firstName: string;
     lastName: string;
-    role: string;
-    storeId: string;
+    userStores: {
+        storeId: string;
+        storeName: string;
+        role: UserRole;
+        isActive: boolean;
+    }[];
     iat?: number; // issued at
     exp?: number; // expires at
 }
 
-// Datos del usuario autenticado (sin password)
 export interface AuthUser {
     id: string;
     email: string;
     firstName: string;
     lastName: string;
-    role: string;
-    storeId: string;
-    store: string; // nombre de la tienda
+    isActive: boolean;
+    userStores: UserStoreInfo[];
     createdAt: Date;
     updatedAt: Date;
 }
 
 // Response del login
 export interface LoginResponse {
+    user: AuthUser;
+    message: string;
+}
+
+// Response para operaciones de usuario
+export interface UserResponse {
     user: AuthUser;
     message: string;
 }
@@ -66,4 +92,34 @@ export interface TokenPair {
 // Request extendido con usuario autenticado
 export interface AuthenticatedRequest extends Request {
     user?: JWTPayload;
+}
+
+// Para validaciones de roles
+export interface RolePermissions {
+    canAccessMultipleStores: boolean;
+    canManageUsers: boolean;
+    canManageProducts: boolean;
+    canViewReports: boolean;
+    canProcessTransactions: boolean;
+}
+
+// Helper type para verificar si un usuario tiene permisos
+export type RequiredRole = UserRole | UserRole[];
+
+// Helper para obtener el rol más alto de un usuario
+export interface UserHighestRole {
+    role: UserRole;
+    storeId?: string;
+}
+
+// Para contexto de tienda específica en requests
+export interface StoreContext {
+    storeId: string;
+    storeName: string;
+    userRole: UserRole;
+}
+
+// Extended request with store context
+export interface StoreAuthenticatedRequest extends AuthenticatedRequest {
+    storeContext?: StoreContext;
 }

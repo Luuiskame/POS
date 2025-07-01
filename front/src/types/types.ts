@@ -72,7 +72,8 @@ id: string;                // UUID o string único
   isActive: boolean;
   storeId: string;         // ID de la tienda
   createdAt: string;       // fecha de creación
-  updatedAt: string;       // fecha de actualización
+  updatedAt: string;
+  userStores?: Stores[]
 };
 
 
@@ -90,7 +91,8 @@ export type Client = {
 
 //*stores
 export type Stores = {
-  id: string;               // UUID o string único
+  id: string;     // id that matches user-store relation
+  storeId: string; // ID of the store
   name: string;
   address: string;
   phone: string;

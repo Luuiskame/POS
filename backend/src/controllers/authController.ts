@@ -1,60 +1,19 @@
-// src/controllers/authController.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authServices';
+import { AuthUser, RegisterCredentials, LoginCredentials } from '../types/authTypes';
 import { setAuthCookies } from '../utils/jwt';
-
-export const createStore = async (req: Request, res: Response) => {
-  try {
-    const {
-      storeName,
-      storeAddress,
-      storePhone,
-      storeEmail,
-      userEmail,
-      userPassword,
-      userFirstName,
-      userLastName
-    } = req.body;
-
-    // 1. Registrar tienda y usuario
-    const { store, user } = await AuthService.registerStore({
-      storeName,
-      storeAddress,
-      storePhone,
-      storeEmail,
-      userEmail,
-      userPassword,
-      userFirstName,
-      userLastName
-    });
-
-    // 2. Generar tokens
-    const { user: loggedUser, tokens } = await AuthService.login({
-      email: user.email,
-      password: userPassword
-});
-
-    // 3. Establecer cookies
-    setAuthCookies(res, tokens);
-
-    // 4. Respuesta
-    res.status(201).json({
-      message: 'Tienda y usuario creados exitosamente',
-      user: loggedUser,
-      tokens
-    });
-
-  } catch (error: any) {
-    console.error('Error en createStore:', error.message);
-    res.status(500).json({
-      message: error.message || 'Error al crear la tienda'
-    });
-  }
-};
+import { UserService } from '../services/userServices';
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password }: LoginCredentials = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+       res.status(400).json({
+        message: 'Email y contraseña son requeridos'
+      });
+    }
 
     // 1. Iniciar sesión
     const { user, tokens } = await AuthService.login({ email, password });
@@ -66,13 +25,73 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({
       message: 'Logged in successfully',
       user,
-      // tokens
+      // tokens are set in cookies, not returned in response for security
     });
 
   } catch (error: any) {
     console.error('Error en login:', error.message);
     res.status(401).json({
       message: error.message || 'Credenciales inválidas'
+    });
+  }
+};
+
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const { 
+      email, 
+      password, 
+      firstName, 
+      lastName, 
+      role, 
+      storeId 
+    }: RegisterCredentials = req.body;
+
+    // Validate required fields
+    if (!email || !password || !firstName || !lastName) {
+        res.status(400).json({
+        message: 'Email, contraseña, nombre y apellido son requeridos'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+         res.status(400).json({
+        message: 'Formato de email inválido'
+      });
+    }
+
+    // 1. Create user
+    const user: AuthUser = await AuthService.createUser({
+      email: email.toLowerCase().trim(),
+      password,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      role,
+      storeId
+    });
+
+    // 2. Return success response (don't auto-login, require explicit login)
+    res.status(201).json({
+      message: 'Usuario creado exitosamente',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isActive: user.isActive,
+        userStores: user.userStores,
+        createdAt: user.createdAt
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error creando usuario:', error.message);
+
+    // Generic error response
+    res.status(500).json({
+      message: error.message || 'Error interno del servidor'
     });
   }
 };
@@ -94,31 +113,4 @@ export const logout = async (req: Request, res: Response) => {
   }
 }
 
-export const createSuperAdmin = async (req: Request, res: Response) => {
-  try {
-    const { email, password, firstName, lastName } = req.body;
-
-    // 1. Crear superadmin
-    const user  = await AuthService.createSuperAdmin({
-      email,
-      password,
-      firstName,
-      lastName,
-      role: 'superadmin',
-      storeId: '7c8ba34e-a700-4863-b5a9-83afc997f774' 
-    });
-
-    // 3. Respuesta
-    res.status(201).json({
-      message: 'Superadmin creado exitosamente',
-      user
-    });
-
-  } catch (error: any) {
-    console.error('Error en createSuperAdmin:', error.message);
-    res.status(500).json({
-      message: error.message || 'Error al crear el superadmin'
-    });
-  }
-};
 

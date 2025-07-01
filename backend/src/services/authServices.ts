@@ -1,99 +1,18 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../app';
-import { 
-  LoginCredentials, 
-  RegisterCredentials, 
-  AuthUser, 
+import {
+  LoginCredentials,
+  RegisterCredentials,
   JWTPayload,
-  TokenPair 
+  TokenPair,
+  UserRole,
+  AuthUser,
 } from '../types/authTypes';
-
 import { generateTokenPair } from '../utils/jwt';
 
 export class AuthService {
-  
-  static async registerStore(storeData: {
-    storeName: string;
-    storeAddress: string;
-    storePhone?: string;
-    storeEmail?: string;
-    // Usuario admin de la tienda
-    userEmail: string;
-    userPassword: string;
-    userFirstName: string;
-    userLastName: string;
-  }): Promise<{ store: any; user: AuthUser }> {
-    
+  static async createUser(data: RegisterCredentials): Promise<AuthUser> {
     try {
-      // 1. Verificar que el email no exista
-      const existingUser = await prisma.user.findUnique({
-        where: { email: storeData.userEmail }
-      });
-
-      if (existingUser) {
-        throw new Error('El email ya está registrado');
-      }
-
-      // 2. Hashear contraseña
-      const hashedPassword = await bcrypt.hash(storeData.userPassword, 12);
-
-      // 3. Crear tienda Y usuario admin en una transacción
-      const result = await prisma.$transaction(async (tx) => {
-        // Crear la tienda
-        const store = await tx.store.create({
-          data: {
-            name: storeData.storeName,
-            address: storeData.storeAddress,
-            phone: storeData.storePhone,
-            email: storeData.storeEmail
-          }
-        });
-
-        // Crear usuario admin para esa tienda
-        const user = await tx.user.create({
-          data: {
-            email: storeData.userEmail,
-            passwordHash: hashedPassword, 
-            firstName: storeData.userFirstName,
-            lastName: storeData.userLastName,
-            role: 'admin', 
-            storeId: store.id
-          },
-          include: {
-            store: true
-          }
-        });
-
-        return { store, user };
-      });
-
-      // 4. Formatear respuesta
-      const authUser: AuthUser = {
-        id: result.user.id,
-        email: result.user.email,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        role: result.user.role,
-        storeId: result.user.storeId,
-        store: result.user.store.name,
-        createdAt: result.user.createdAt,
-        updatedAt: result.user.updatedAt
-      };
-
-      return { store: result.store, user: authUser };
-
-    } catch (error) {
-      console.error('Error registrando tienda:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 2. REGISTRAR USUARIO EN TIENDA EXISTENTE
-   */
-  static async registerUser(data: RegisterCredentials): Promise<AuthUser> {
-    try {
-      // 1. Verificar email único
       const existingUser = await prisma.user.findUnique({
         where: { email: data.email }
       });
@@ -102,141 +21,144 @@ export class AuthService {
         throw new Error('El email ya está registrado');
       }
 
-      // 2. Verificar que la tienda existe
-      const store = await prisma.store.findUnique({
-        where: { id: data.storeId }
-      });
+      // 2. If storeId is provided, verify the store exists
+      if (data.storeId) {
+        const store = await prisma.store.findUnique({
+          where: { id: data.storeId }
+        });
 
-      if (!store) {
-        throw new Error('La tienda no existe');
+        if (!store) {
+          throw new Error('La tienda especificada no existe');
+        }
       }
 
       // 3. Hashear contraseña
       const hashedPassword = await bcrypt.hash(data.password, 12);
 
-      // 4. Crear usuario
-      const user = await prisma.user.create({
-        data: {
-          email: data.email,
-          passwordHash: hashedPassword, // ⭐ passwordHash
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: data.role,
-          storeId: data.storeId
-        },
-        include: {
-          store: true
+      // 4. Create user with store assignment (if provided) in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        // Create the user
+        const user = await tx.user.create({
+          data: {
+            email: data.email,
+            passwordHash: hashedPassword,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          }
+        });
+
+        // If storeId is provided, create the UserStore relationship
+        if (data.storeId) {
+          await tx.userStore.create({
+            data: {
+              userId: user.id,
+              storeId: data.storeId,
+              role: data.role,
+            }
+          });
         }
+
+        // Return the user with store relationships
+        return await tx.user.findUnique({
+          where: { id: user.id },
+          include: {
+            userStores: {
+              include: {
+                store: true
+              }
+            }
+          }
+        });
       });
 
-      // 5. Retornar usuario formateado
-      return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId,
-        store: user.store.name,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      };
-
-    } catch (error) {
-      console.error('Error registrando usuario:', error);
-      throw error;
-    }
-  }
-
-  static  async createSuperAdmin (data: RegisterCredentials): Promise<AuthUser> {
-    try {
-      // 1. Verificar que el email no exista
-      const existingUser = await prisma.user.findUnique({
-        where: { email: data.email }
-      });
-
-      if (existingUser) {
-        throw new Error('El email ya está registrado');
+      if (!result) {
+        throw new Error('Error al crear el usuario');
       }
 
-      // 2. Hashear contraseña
-      const hashedPassword = await bcrypt.hash(data.password, 12);
-
-      // 3. Crear usuario superadmin
-      const user = await prisma.user.create({
-        data: {
-          email: data.email,
-          passwordHash: hashedPassword,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: data.role,
-          storeId: data.storeId
-        }
-      });
-
-      // 4. Retornar usuario formateado
+      // 5. Format and return user
       return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId,
-        store: 'The superadmin store', // Superadmin no tiene tienda
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        id: result.id,
+        email: result.email,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        isActive: result.isActive,
+        userStores: result.userStores.map(us => ({
+          id: us.id,
+          storeId: us.storeId,
+          storeName: us.store.name,
+          role: us.role as UserRole,
+          isActive: us.isActive
+        })),
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt
       };
 
     } catch (error) {
-      console.error('Error creando superadmin:', error);
+      console.error('Error creando usuario:', error);
       throw error;
     }
   }
 
   /**
-   * 3. LOGIN - Autenticar usuario
+   * LOGIN - Authenticate user
    */
   static async login(credentials: LoginCredentials): Promise<{ user: AuthUser; tokens: TokenPair }> {
     try {
-      // 1. Buscar usuario
+      // 1. Find user with store relationships
       const user = await prisma.user.findUnique({
         where: { email: credentials.email },
-        include: { store: true }
+        include: {
+          userStores: {
+            where: { isActive: true }, // Only active store relationships
+            include: {
+              store: true
+            }
+          }
+        }
       });
 
       if (!user || !user.isActive) {
         throw new Error('Credenciales inválidas');
       }
 
-      // 2. Verificar contraseña
+      // 2. Verify password
       const isValidPassword = await bcrypt.compare(credentials.password, user.passwordHash);
       
       if (!isValidPassword) {
         throw new Error('Credenciales inválidas');
       }
 
-      // 3. Crear payload para JWT
+      // 3. Create JWT payload with user stores
       const jwtPayload: Omit<JWTPayload, 'iat' | 'exp'> = {
         userId: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId
+        userStores: user.userStores.map(us => ({
+          storeId: us.storeId,
+          storeName: us.store.name,
+          role: us.role as UserRole,
+          isActive: us.isActive
+        }))
       };
 
-      // 4. Generar tokens
+      // 4. Generate tokens
       const tokens = generateTokenPair(jwtPayload);
 
-      // 5. Usuario formateado
+      // 5. Format user response
       const authUser: AuthUser = {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId,
-        store: user.store.name,
+        isActive: user.isActive,
+        userStores: user.userStores.map(us => ({
+          id: us.id,
+          storeId: us.storeId,
+          storeName: us.store.name,
+          role: us.role as UserRole,
+          isActive: us.isActive
+        })),
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       };
@@ -250,50 +172,57 @@ export class AuthService {
   }
 
   /**
-   * 4. REFRESCAR TOKENS
+   * ASSIGN USER TO STORE - Assign existing user to a store with a role
    */
-  static async refreshTokens(userId: string): Promise<{ user: AuthUser; tokens: TokenPair }> {
+  static async assignUserToStore(
+    userId: string, 
+    storeId: string, 
+    role: UserRole
+  ): Promise<void> {
     try {
-      // 1. Buscar usuario actual
+      // Check if user exists
       const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { store: true }
+        where: { id: userId }
       });
 
-      if (!user || !user.isActive) {
-        throw new Error('Usuario no válido');
+      if (!user) {
+        throw new Error('Usuario no encontrado');
       }
 
-      // 2. Crear nuevo payload
-      const jwtPayload: Omit<JWTPayload, 'iat' | 'exp'> = {
-        userId: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId
-      };
+      // Check if store exists
+      const store = await prisma.store.findUnique({
+        where: { id: storeId }
+      });
 
-      // 3. Generar nuevos tokens
-      const tokens = generateTokenPair(jwtPayload);
+      if (!store) {
+        throw new Error('Tienda no encontrada');
+      }
 
-      // 4. Usuario formateado
-      const authUser: AuthUser = {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        storeId: user.storeId,
-        store: user.store.name,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      };
+      // Check if relationship already exists
+      const existingRelation = await prisma.userStore.findUnique({
+        where: {
+          userId_storeId: {
+            userId,
+            storeId
+          }
+        }
+      });
 
-      return { user: authUser, tokens };
+      if (existingRelation) {
+        throw new Error('El usuario ya está asignado a esta tienda');
+      }
+
+      // Create the relationship
+      await prisma.userStore.create({
+        data: {
+          userId,
+          storeId,
+          role
+        }
+      });
 
     } catch (error) {
-      console.error('Error refrescando tokens:', error);
+      console.error('Error asignando usuario a tienda:', error);
       throw error;
     }
   }

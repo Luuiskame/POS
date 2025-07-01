@@ -20,7 +20,7 @@ model Store {
   updatedAt DateTime @updatedAt
 
   // Relations - Una tienda tiene muchos...
-  users        User[]
+  userStores   UserStore[]   // Changed: many-to-many with users
   products     Product[]
   inventory    Inventory[]
   transactions Transaction[]
@@ -38,17 +38,38 @@ model User {
   passwordHash String   @map("password_hash")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
-  role         UserRole @default(cashier)
   isActive     Boolean  @default(true)
-  storeId      String   @map("store_id")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
-  store        Store         @relation(fields: [storeId], references: [id])
+  userStores   UserStore[]   // Changed: many-to-many with stores
   transactions Transaction[]
 
   @@map("users")
+}
+
+// ==========================================
+// MODELO DE RELACIÓN USUARIO-TIENDA (ROLES POR TIENDA)
+// ==========================================
+model UserStore {
+  id        String   @id @default(uuid())
+  role      UserRole @default(cashier)
+  isActive  Boolean  @default(true)  // User can be active/inactive per store
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign Keys
+  userId    String   @map("user_id")
+  storeId   String   @map("store_id")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  // A user can only have one role per store
+  @@unique([userId, storeId])
+  @@map("user_stores")
 }
 
 enum UserRole {
