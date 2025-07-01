@@ -1,66 +1,69 @@
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import * as React from "react";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { rawChartData, store } from "@/lib/data"
-import { 
+} from "@/components/ui/select";
+import { rawChartData, store } from "@/lib/data";
+import {
   ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "../ui/chart"
+} from "../ui/chart";
 
-export const description = "An interactive area chart"
+export const description = "An interactive area chart";
 
 // Configuración de datos del gráfico
 const chartData = rawChartData.map((item) => ({
   date: item.date,
-  [store[0].name]: item.desktop,  
+  [store[0].name]: item.desktop,
   [store[1].name]: item.mobile,
 }));
 
+console.log("chartData", chartData);
 
 const chartConfig = {
   [store[0].name]: {
     label: store[0].name,
-    color: "var(--chart-1)",
+    color: "#8884d8",
   },
   [store[1].name]: {
     label: store[1].name,
-    color: "var(--chart-2)",
+    color: "#3b82f6",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function ChartAreaInteractive() {
-  const [timeRange, setTimeRange] = React.useState("90d")
-  
+  const [timeRange, setTimeRange] = React.useState("90d");
+
   const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    let daysToSubtract = 90
+    const date = new Date(item.date);
+    const referenceDate = new Date("2024-06-30");
+    let daysToSubtract = 90;
     if (timeRange === "30d") {
-      daysToSubtract = 30
+      daysToSubtract = 30;
     } else if (timeRange === "7d") {
-      daysToSubtract = 7
+      daysToSubtract = 7;
     }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+    const startDate = new Date(referenceDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    return date >= startDate;
+  });
+
+  console.log("Filtered Data", filteredData);
 
   return (
     <Card className="pt-0">
@@ -99,17 +102,33 @@ export function ChartAreaInteractive() {
           <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="fill1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                <stop
+                  offset="5%"
+                  stopColor="#8884d8"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="#8884d8"
+                  stopOpacity={0.1}
+                />
               </linearGradient>
               <linearGradient id="fill2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.1} />
+                <stop
+                  offset="5%"
+                  stopColor="#3b82f6"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="#3b82f6"
+                  stopOpacity={0.1}
+                />
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              vertical={false} 
-              strokeDasharray="3 3" 
+            <CartesianGrid
+              vertical={false}
+              strokeDasharray="3 3"
               stroke="var(--border)"
             />
             <XAxis
@@ -120,18 +139,18 @@ export function ChartAreaInteractive() {
               minTickGap={32}
               tick={{ fill: "var(--muted-foreground)" }}
               tickFormatter={(value) => {
-                const date = new Date(value)
+                const date = new Date(value);
                 return date.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
-                })
+                });
               }}
             />
             <ChartTooltip
-              cursor={{ 
+              cursor={{
                 stroke: "var(--border)",
                 strokeWidth: 1,
-                strokeDasharray: "3 3"
+                strokeDasharray: "3 3",
               }}
               content={(props) => (
                 <ChartTooltipContent
@@ -140,26 +159,27 @@ export function ChartAreaInteractive() {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
-                    })
+                    });
                   }}
                   indicator="dot"
                 />
               )}
             />
             <Area
-              dataKey={store[0].name}
+              dataKey="Tienda de Carlos Mendoza"
               type="monotone"
-              fill="url(#fill1)"
-              stroke="var(--chart-1)"
+              fill="#8884d8"
+              stroke="#8884d8"
               strokeWidth={2}
               fillOpacity={1}
               activeDot={{ r: 6 }}
             />
+
             <Area
-              dataKey={store[1].name}
+              dataKey="Tienda de Juan Perez"
               type="monotone"
-              fill="url(#fill2)"
-             stroke="var(--chart-2)"
+              fill="#3b82f6"
+             stroke="#3b82f6"
               strokeWidth={2}
               fillOpacity={1}
               activeDot={{ r: 6 }}
@@ -169,5 +189,5 @@ export function ChartAreaInteractive() {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
