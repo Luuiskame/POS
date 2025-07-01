@@ -26,14 +26,27 @@ export interface AssociateUserToStoreRequest {
     role: UserRole;
 }
 
+// Store relationship info for users
+export interface UserStoreInfo {
+    id: string; // UserStore relation ID
+    storeId: string;
+    storeName: string;
+    role: UserRole;
+    isActive: boolean;
+}
+
 // Payload que va dentro del JWT - información esencial
 export interface JWTPayload {
     userId: string;
     email: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
-    storeId: string | null; // puede ser null si no pertenece a una tienda
+    userStores: {
+        storeId: string;
+        storeName: string;
+        role: UserRole;
+        isActive: boolean;
+    }[];
     iat?: number; // issued at
     exp?: number; // expires at
 }
@@ -43,9 +56,8 @@ export interface AuthUser {
     email: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
-    storeId: string | null; // puede ser null si no pertenece a una tienda
-    store: string | null; // nombre de la tienda
+    isActive: boolean;
+    userStores: UserStoreInfo[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -93,3 +105,21 @@ export interface RolePermissions {
 
 // Helper type para verificar si un usuario tiene permisos
 export type RequiredRole = UserRole | UserRole[];
+
+// Helper para obtener el rol más alto de un usuario
+export interface UserHighestRole {
+    role: UserRole;
+    storeId?: string;
+}
+
+// Para contexto de tienda específica en requests
+export interface StoreContext {
+    storeId: string;
+    storeName: string;
+    userRole: UserRole;
+}
+
+// Extended request with store context
+export interface StoreAuthenticatedRequest extends AuthenticatedRequest {
+    storeContext?: StoreContext;
+}
