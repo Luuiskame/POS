@@ -31,9 +31,6 @@ export class StoreService {
     throw new Error('El usuario no existe.');
   }
 
-  if (existingUser.userStores.length > 0) {
-    throw new Error('El usuario ya tiene un rol asignado en otra tienda.');
-  }
 
   const result = await prisma.$transaction(async (tx) => {
     const store = await tx.store.create({
