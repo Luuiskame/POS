@@ -3,8 +3,18 @@ import { StoreService } from '../../services/storeServices';
 import { AuthUser } from '../../types/authTypes';
 
 export const createStore = async (req: Request, res: Response) => {
+  console.log('Creating store with body:', req.body);
     try {
         const { storeName, storeAddress, storePhone, storeEmail, userId, role } = req.body;
+
+        console.log('Received data:', {
+            storeName,
+            storeAddress,
+            storePhone,
+            storeEmail,
+            userId,
+            role
+        });
 
         // Validate required fields
         if (!storeName || !storeAddress || !userId) {

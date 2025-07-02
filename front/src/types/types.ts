@@ -59,22 +59,29 @@ export type Sale = {
 
 
 
-
+export type UserStore = {
+  id: string;               // ID de la relación
+  storeId: string;          // ID de la tienda
+  storeName: string;        // nombre de la tienda
+  role: "admin" | "manager" | "cashier" | "superadmin";
+  isActive: boolean;
+};
 
 
 //* Usuario
 export type User = {
-id: string;                // UUID o string único
-  email: string;           // único
-  password: string;        // hash
+  id: string;
+  email: string;
+  password: string;
   name: string;
-  role: "admin" | "manager" | "cashier";
+  role: "admin" | "manager" | "cashier"| "superadmin";
   isActive: boolean;
-  storeId: string;         // ID de la tienda
-  createdAt: string;       // fecha de creación
+  storeId: string;
+  createdAt: string;
   updatedAt: string;
-  userStores?: Stores[]
+  userStores?: UserStore[];  
 };
+
 
 
 
@@ -93,10 +100,12 @@ export type Client = {
 export type Stores = {
   id: string;     // id that matches user-store relation
   storeId: string; // ID of the store
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
+  storeName: string;
+  storeAddress: string;
+  storePhone: string;
+  storeEmail: string;
   createdAt: string;        
-  updatedAt: string;        
+  updatedAt: string;      
+  userId?: string;
+  role?: "admin" | "manager" | "cashier" | "superadmin";
 };

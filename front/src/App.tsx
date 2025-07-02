@@ -40,7 +40,11 @@ const ProtectedRoute = ({
     return <Navigate to="/" replace />;
   }
 
-  if (roles && !roles.includes(user.role)) {
+  // Extraemos el rol desde userStores
+  const userRole = user.userStores?.[0]?.role ?? "";
+
+  // Si no está permitido el rol, redireccionamos
+  if (roles && !roles.includes(userRole)) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -68,7 +72,9 @@ function App() {
             <Route
               path="ventas/nueva"
               element={
-                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
+                <ProtectedRoute
+                  roles={["admin", "manager", "cashier", "superadmin"]}
+                >
                   <MainVentas />
                 </ProtectedRoute>
               }
@@ -78,7 +84,7 @@ function App() {
             <Route
               path="store"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "superadmin"]}>
                   <Store />
                 </ProtectedRoute>
               }
@@ -86,7 +92,9 @@ function App() {
             <Route
               path="store/nueva"
               element={
-                <ProtectedRoute roles={["admin", "manager", "cashier"]}>
+                <ProtectedRoute
+                  roles={["admin", "manager", "cashier", "superadmin"]}
+                >
                   <Nueva />
                 </ProtectedRoute>
               }
@@ -95,7 +103,7 @@ function App() {
             <Route
               path="store/:id/edit"
               element={
-                <ProtectedRoute roles={["admin", "manager"]}>
+                <ProtectedRoute roles={["admin", "manager", "superadmin"]}>
                   <EditStorePage />
                 </ProtectedRoute>
               }
@@ -105,7 +113,7 @@ function App() {
             <Route
               path="productos"
               element={
-                <ProtectedRoute roles={["admin", "manager"]}>
+                <ProtectedRoute roles={["admin", "manager", "superadmin"]}>
                   <MainProduct />
                 </ProtectedRoute>
               }
@@ -113,7 +121,7 @@ function App() {
             <Route
               path="productos/nuevo"
               element={
-                <ProtectedRoute roles={["admin", "manager"]}>
+                <ProtectedRoute roles={["admin", "manager", "superadmin"]}>
                   <Nuevo />
                 </ProtectedRoute>
               }
@@ -122,7 +130,7 @@ function App() {
             <Route
               path="productos/:id/edit"
               element={
-                <ProtectedRoute roles={["admin", "manager"]}>
+                <ProtectedRoute roles={["admin", "manager", "superadmin"]}>
                   <EditProductPage />
                 </ProtectedRoute>
               }
@@ -132,7 +140,7 @@ function App() {
             <Route
               path="usuarios"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "superadmin"]}>
                   <MainUsers />
                 </ProtectedRoute>
               }
@@ -140,7 +148,7 @@ function App() {
             <Route
               path="usuarios/nuevo"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "superadmin"]}>
                   <AdminUsersPage />
                 </ProtectedRoute>
               }
@@ -148,7 +156,7 @@ function App() {
             <Route
               path="usuarios/:id/edit"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "superadmin"]}>
                   <EditUserPage />
                 </ProtectedRoute>
               }

@@ -23,7 +23,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [logInMutation] = useLoginMutation()
+  const [logInMutation, { isLoading }] = useLoginMutation();
   const { register, handleSubmit, formState: { errors } } = useForm<{
     email: string;
     password: string;
@@ -98,7 +98,7 @@ export function LoginForm({
                     </div>
                 </div>
                 <Button type="submit" className="w-full">
-                  Login
+                  {isLoading ? "Cargando..." : "Iniciar sesión"}
                 </Button>
               </div>
             </div>
