@@ -1,21 +1,21 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useForm } from "react-hook-form"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "@/redux/services/authApi"
-import { setUserLogin } from "@/redux/features/userSlice"
-import { useDispatch } from "react-redux"
-import { EyeClosed, EyeIcon } from "lucide-react"
-import React from "react"
+import { useLoginMutation } from "@/redux/services/authApi";
+import { setUserLogin } from "@/redux/features/userSlice";
+import { useDispatch } from "react-redux";
+import { EyeClosed, EyeIcon, Loader2 } from "lucide-react";
+import React from "react";
 
 export function LoginForm({
   className,
@@ -24,16 +24,20 @@ export function LoginForm({
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [logInMutation, { isLoading }] = useLoginMutation();
-  const { register, handleSubmit, formState: { errors } } = useForm<{
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<{
     email: string;
     password: string;
   }>();
 
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const onSubmit = async (data: {email: string; password: string}) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     try {
-      const response = await logInMutation(data).unwrap()
+      const response = await logInMutation(data).unwrap();
       if (response?.user.id) {
         dispatch(setUserLogin(response.user));
         localStorage.setItem("userLogin", JSON.stringify(response.user));
@@ -42,7 +46,7 @@ export function LoginForm({
     } catch (error) {
       console.log("Login failed:", error);
     }
-  }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -66,7 +70,11 @@ export function LoginForm({
                     required
                     {...register("email", { required: "Email es requerido" })}
                   />
-                  {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
+                  {errors.email && (
+                    <span className="text-red-500 text-sm">
+                      {errors.email.message}
+                    </span>
+                  )}
                 </div>
                 <div className="grid gap-3">
                   <div className="flex items-center">
@@ -78,27 +86,43 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                 <div className="relative flex items-center">
-
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"}
-                    required 
-                    {...register("password", { required: "Contraseña es requerida" })}
-                  />
-                  {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
-                  <Button
-                    variant="outline"
-                    className="w-1/6"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeClosed className="h-4 w-4" /> : <EyeIcon  className="h-4 w-4" />}
-                  </Button>
-                    </div>
+                  <div className="relative flex items-center">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      {...register("password", {
+                        required: "Contraseña es requerida",
+                      })}
+                    />
+                    {errors.password && (
+                      <span className="text-red-500 text-sm">
+                        {errors.password.message}
+                      </span>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeClosed className="h-4 w-4" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full">
-                  {isLoading ? "Cargando..." : "Iniciar sesión"}
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Cargando...
+                    </span>
+                  ) : (
+                    "Iniciar Sesión"
+                  )}
                 </Button>
               </div>
             </div>

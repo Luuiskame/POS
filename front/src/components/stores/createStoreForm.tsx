@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { useCreateStoresMutation } from "@/redux/services/storeApi";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { selectUserLogin } from "@/redux/features/userSlice";
 import { useSelector } from "react-redux";
 
@@ -71,6 +71,7 @@ export function StoreCreateForm() {
       }).unwrap();
       if (response) {
         setMensaje("Tienda creada exitosamente");
+        form.reset();
       }
     } catch (error) {
       console.error("Error al crear la tienda:", error);
@@ -176,9 +177,23 @@ export function StoreCreateForm() {
           />
         </div>
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Cargando..." : "Agregar"}
-        </Button>
+        {/* Botón de submit */}
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cargando...
+              </span>
+            ) : (
+              "Crear Usuario"
+            )}
+          </Button>
+        </div>
       </form>
       <div className="mt-5 space-y-3">
         {error && (
@@ -189,7 +204,7 @@ export function StoreCreateForm() {
         )}
 
         {mensaje && (
-          <Alert className="border-green-200 bg-green-50">
+          <Alert className="border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
               {mensaje}

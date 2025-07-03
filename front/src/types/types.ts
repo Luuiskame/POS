@@ -73,7 +73,8 @@ export type User = {
   id: string;
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: "admin" | "manager" | "cashier"| "superadmin";
   isActive: boolean;
   storeId: string;

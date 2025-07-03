@@ -38,6 +38,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
+    console.log("data de crear usuario", req.body);
     const { 
       email, 
       password, 
@@ -46,6 +47,8 @@ export const createUser = async (req: Request, res: Response) => {
       role, 
       storeId 
     }: RegisterCredentials = req.body;
+
+    console.log("Body", req.body);
 
     // Validate required fields
     if (!email || !password || !firstName || !lastName) {
