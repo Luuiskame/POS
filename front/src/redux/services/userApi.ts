@@ -5,7 +5,10 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-type UserApiResponse = User[];
+type UserApiResponse = {
+    user: User;
+    message: string;
+};
 
 export const UserApi = createApi({
     reducerPath: 'UserApi',

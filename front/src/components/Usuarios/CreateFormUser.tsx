@@ -82,7 +82,7 @@ export function UserCreateForm() {
         updatedAt: new Date().toISOString(),
       }).unwrap();
       if (response) {
-        setSuccess("Usuario creado exitosamente");
+        setSuccess(response.message);
         setError(null);
         form.reset();
       }
