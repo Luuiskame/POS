@@ -17,6 +17,7 @@ import { AuthProvider } from "./components/Control/AuthProvider";
 import EditUserPage from "./Pages/Usuarios/EditUser";
 import EditStorePage from "./Pages/Store/EditStore";
 import EditProductPage from "./Pages/Productos/EditProduct";
+import { StoreSelector } from "./Pages/SelectStore/SelectStore";
 
 const ProtectedRoute = ({
   children,
@@ -53,6 +54,10 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<LoginPage />} />
+
+          <Route path="select-store" element={
+              <StoreSelector />
+            }/>
 
           <Route
             path="/dashboard"

@@ -11,7 +11,7 @@ export type Product = {
   description?: string;
 };
 
-
+export type userRole = "admin" | "manager" | "cashier" | "superadmin";
 
 
 //* Carrito
@@ -74,6 +74,7 @@ id: string;                // UUID o string único
   createdAt: string;       // fecha de creación
   updatedAt: string;
   userStores?: Stores[]
+  activeStore: Stores | null
 };
 
 
@@ -94,9 +95,12 @@ export type Stores = {
   id: string;     // id that matches user-store relation
   storeId: string; // ID of the store
   name: string;
+  storeName: string;
   address: string;
   phone: string;
   email: string;
   createdAt: string;        
   updatedAt: string;        
+  isActive: boolean;        
+  role: userRole;         
 };

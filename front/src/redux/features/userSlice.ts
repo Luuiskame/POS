@@ -4,6 +4,7 @@ import { users } from "@/lib/data";
 import type { User } from "@/types/types";
 import type { RootState } from "@/types/RootState";
 import type { AppThunk } from "../store";
+import type { Stores } from "@/types/types";
 
 interface UserState {
   users: User[];
@@ -41,6 +42,11 @@ const userSlice = createSlice({
       state.userLogin = null;
       localStorage.removeItem("userLogin");
     },
+    setActiveStore: (state, action: PayloadAction<Stores>) => {
+      if (state.userLogin) {
+        state.userLogin.activeStore = action.payload;
+    }
+  },
     setUserLogin: (state, action: PayloadAction<User>) => {
       state.userLogin = action.payload;
     },
@@ -67,6 +73,7 @@ export const {
   removeUser,
   logoutUser,
   setUserLogin,
+  setActiveStore,
 } = userSlice.actions;
 
 export default userSlice.reducer;

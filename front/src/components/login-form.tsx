@@ -35,9 +35,22 @@ export function LoginForm({
     try {
       const response = await logInMutation(data).unwrap()
       if (response?.user.id) {
-        dispatch(setUserLogin(response.user));
-        localStorage.setItem("userLogin", JSON.stringify(response.user));
-        navigate("/dashboard");
+        // Guardar datos del usuario temporalmente
+        localStorage.setItem("tempUserData", JSON.stringify(response.user));
+        
+        if(response?.user.userStores !== undefined && response?.user.userStores.length > 1) {
+          console.log("Multiple stores found, redirecting to store selection");
+          navigate("/select-store");
+        } else {
+          // Si solo tiene una tienda, proceder directamente
+          const activeStore = response.user.userStores?.[0] || null;
+          dispatch(setUserLogin(response.user));
+          localStorage.setItem("userLogin", JSON.stringify(response.user));
+          if (activeStore) {
+            localStorage.setItem("activeStore", JSON.stringify(activeStore));
+          }
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.log("Login failed:", error);
@@ -79,7 +92,6 @@ export function LoginForm({
                     </a>
                   </div>
                  <div className="relative flex items-center">
-
                   <Input 
                     id="password" 
                     type={showPassword ? "text" : "password"}
