@@ -35,17 +35,24 @@ export function LoginForm({
     try {
       const response = await logInMutation(data).unwrap()
       if (response?.user.id) {
-        // Guardar datos del usuario temporalmente
-        localStorage.setItem("tempUserData", JSON.stringify(response.user));
+        const addActiveStoreToResponse = {
+          ...response.user,
+          activeStore: null
+        }
+        localStorage.setItem("tempUserData", JSON.stringify(addActiveStoreToResponse));
         
         if(response?.user.userStores !== undefined && response?.user.userStores.length > 1) {
           console.log("Multiple stores found, redirecting to store selection");
           navigate("/select-store");
         } else {
-          // Si solo tiene una tienda, proceder directamente
           const activeStore = response.user.userStores?.[0] || null;
-          dispatch(setUserLogin(response.user));
-          localStorage.setItem("userLogin", JSON.stringify(response.user));
+          const addActiveStoreToResponse = {
+          ...response.user,
+          activeStore: null
+        }
+          dispatch(setUserLogin(addActiveStoreToResponse));
+          localStorage.setItem("userLogin", JSON.stringify(addActiveStoreToResponse));
+          localStorage.removeItem("tempUserData");
           if (activeStore) {
             localStorage.setItem("activeStore", JSON.stringify(activeStore));
           }

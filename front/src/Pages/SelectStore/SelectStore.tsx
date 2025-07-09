@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { setUserLogin, setActiveStore } from "@/redux/features/userSlice"
 import { useDispatch } from "react-redux"
 import { Store } from "lucide-react"
-import { Stores } from "@/types/types"
+import { Stores, User } from "@/types/types"
 import React from "react"
 
 export function StoreSelector({
@@ -21,7 +21,7 @@ export function StoreSelector({
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [userStores, setUserStores] = React.useState<Stores[]>([]);
-  const [userData, setUserData] = React.useState<any>(null);
+  const [userData, setUserData] = React.useState<User | null >(null);
   const [selectedStore, setSelectedStore] = React.useState<Stores | null>(null);
 
   React.useEffect(() => {
@@ -32,8 +32,7 @@ export function StoreSelector({
       setUserData(parsedUserData);
       setUserStores(parsedUserData.userStores || []);
     } else {
-      // Si no hay datos temporales, redirigir al login
-      navigate("/login");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -43,20 +42,15 @@ export function StoreSelector({
 
   const handleContinue = () => {
     if (selectedStore && userData) {
-      // Dispatch user login
-      dispatch(setUserLogin(userData));
       
       // Dispatch active store
       dispatch(setActiveStore(selectedStore));
       
-      // Guardar en localStorage
-      localStorage.setItem("userLogin", JSON.stringify(userData));
+      dispatch(setUserLogin(userData));
       localStorage.setItem("activeStore", JSON.stringify(selectedStore));
       
-      // Limpiar datos temporales
       localStorage.removeItem("tempUserData");
       
-      // Navegar al dashboard
       navigate("/dashboard");
     }
   };

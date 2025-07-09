@@ -43,12 +43,18 @@ const userSlice = createSlice({
       localStorage.removeItem("userLogin");
     },
     setActiveStore: (state, action: PayloadAction<Stores>) => {
-      if (state.userLogin) {
-        state.userLogin.activeStore = action.payload;
-    }
-  },
+  if (state.userLogin) {
+    console.log("Setting active store:", action.payload);
+    state.userLogin.activeStore = action.payload;
+    localStorage.setItem("userLogin", JSON.stringify(state.userLogin));
+  }
+},
+
+
+
     setUserLogin: (state, action: PayloadAction<User>) => {
       state.userLogin = action.payload;
+      localStorage.setItem("userLogin", JSON.stringify(action.payload));
     },
      hydrate: (state, action: PayloadAction<User | null>) => {
       state.userLogin = action.payload;
