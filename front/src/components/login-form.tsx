@@ -35,9 +35,29 @@ export function LoginForm({
     try {
       const response = await logInMutation(data).unwrap()
       if (response?.user.id) {
-        dispatch(setUserLogin(response.user));
-        localStorage.setItem("userLogin", JSON.stringify(response.user));
-        navigate("/dashboard");
+        const addActiveStoreToResponse = {
+          ...response.user,
+          activeStore: null
+        }
+        localStorage.setItem("tempUserData", JSON.stringify(addActiveStoreToResponse));
+        
+        if(response?.user.userStores !== undefined && response?.user.userStores.length > 1) {
+          console.log("Multiple stores found, redirecting to store selection");
+          navigate("/select-store");
+        } else {
+          const activeStore = response.user.userStores?.[0] || null;
+          const addActiveStoreToResponse = {
+          ...response.user,
+          activeStore: null
+        }
+          dispatch(setUserLogin(addActiveStoreToResponse));
+          localStorage.setItem("userLogin", JSON.stringify(addActiveStoreToResponse));
+          localStorage.removeItem("tempUserData");
+          if (activeStore) {
+            localStorage.setItem("activeStore", JSON.stringify(activeStore));
+          }
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.log("Login failed:", error);
@@ -79,7 +99,6 @@ export function LoginForm({
                     </a>
                   </div>
                  <div className="relative flex items-center">
-
                   <Input 
                     id="password" 
                     type={showPassword ? "text" : "password"}
