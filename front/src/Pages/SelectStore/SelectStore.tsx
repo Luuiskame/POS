@@ -107,9 +107,9 @@ export function StoreSelector({
                       <h3 className="font-semibold text-lg">
                         {store.storeName}
                       </h3>
-                      {store.address && (
+                      {store.storeAddress && (
                         <p className="text-xs text-gray-500 mt-1">
-                          {store.address}
+                          {store.storeAddress}
                         </p>
                       )}
                     </div>
