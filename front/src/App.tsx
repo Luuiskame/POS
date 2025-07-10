@@ -29,6 +29,8 @@ const ProtectedRoute = ({
   const user = useSelector(selectUserLogin);
   const isHydrated = useSelector(selectIsHydrated);
 
+  console.log("user", user);
+
   if (!isHydrated) {
     return (
       <div className="container flex items-center justify-center h-screen ">
@@ -41,8 +43,14 @@ const ProtectedRoute = ({
     return <Navigate to="/" replace />;
   }
 
-  if (roles && !roles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+  if (roles) {
+    const hasRequiredRole = user.userStores?.some((store) =>
+      roles.includes(store.role.toLowerCase())
+    );
+
+    if (!hasRequiredRole) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return children;
@@ -55,9 +63,14 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
 
-          <Route path="select-store" element={
-              <StoreSelector />
-            }/>
+          <Route
+            path="select-store"
+            element={
+              <ProtectedRoute roles={["superadmin", "admin"]}>
+                <StoreSelector />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/dashboard"

@@ -15,47 +15,103 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-// import {  useState } from "react";
-// import { Alert, AlertDescription } from "@/components/ui/alert";
-// import { AlertCircle, CheckCircle2 } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
+import { useCreateStoresMutation } from "@/redux/services/storeApi";
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { selectUserLogin } from "@/redux/features/userSlice";
+import { useSelector } from "react-redux";
 
 const formStoreSchema = z.object({
-  storeId: z.string().min(3, { message: "Error al agregar" }),
-  name: z.string().min(3, { message: "El nombre es requerido" }),
-  address: z.string().min(3, { message: "La dirección es requerida" }),
-  phone: z.string().min(1, { message: "La razón es requerida" }),
-  email: z.string().min(3, { message: "email es requerido" }),
+  storeName: z.string().min(3, { message: "El nombre es requerido" }),
+  storeAddress: z.string().min(3, { message: "La dirección es requerida" }),
+  storeEmail: z.string().email({ message: "Email inválido" }),
+  storePhone: z.string().regex(/^\d+$/, { message: "Solo números" }),
+  storeId: z.string().optional(),
+  userId: z.string().optional(),
+  role: z.enum(["admin", "manager", "cashier", "superadmin"]).optional(),
 });
 
 export function StoreCreateForm() {
-
+  const user = useSelector(selectUserLogin);
+  const [createStore, { isLoading }] = useCreateStoresMutation();
+  const [error, setError] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const userStoreId = user?.userStores?.[0]?.storeId || "";
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formStoreSchema>>({
     resolver: zodResolver(formStoreSchema),
     defaultValues: {
-      storeId: "",
-      name: "",
-      address: "",
-      phone: "",
-      email: "",
+      storeId: userStoreId,
+      storeName: "",
+      storeAddress: "",
+      storePhone: "",
+      storeEmail: "",
+      userId: user?.id || "",
+      role:
+        (user?.userStores?.[0]?.role as
+          | "admin"
+          | "manager"
+          | "cashier"
+          | "superadmin") || "admin",
     },
   });
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formStoreSchema>) {
-   console.log("Form values:", values);
-  }
+    console.log("values", values);
+    try {
+      const response = await createStore({
+        id: crypto.randomUUID(),
+        storeId: values.storeId ?? "",
+        storeName: values.storeName,
+        storeAddress: values.storeAddress,
+        storePhone: values.storePhone,
+        storeEmail: values.storeEmail,
+        userId: values.userId ?? user?.id ?? "",
+        role:
+          (values.role as "admin" | "manager" | "cashier" | "superadmin") ??
+          "admin",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }).unwrap();
+      if (response) {
+        setMensaje("Tienda creada exitosamente");
+        form.reset();
+      }
+    } catch (error) {
+      console.error("Error al crear la tienda:", error);
 
+      // Acceso seguro al mensaje de error
+      type ErrorWithData = { data?: { message?: string } } & {
+        message?: string;
+      };
+      const err = error as ErrorWithData;
+      setError(
+        typeof error === "object" &&
+          error !== null &&
+          "data" in error &&
+          typeof err.data === "object"
+          ? err.data?.message ?? "Error desconocido"
+          : err?.message ?? String(error)
+      );
+    }
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        className="space-y-8"
+        onSubmit={(e) => {
+          console.log("intentando enviar");
+          form.handleSubmit(onSubmit)(e);
+        }}
+      >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name="name"
+            name="storeName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre</FormLabel>
@@ -66,9 +122,7 @@ export function StoreCreateForm() {
                     className="bg-gray-50"
                   />
                 </FormControl>
-                <FormDescription>
-                  Nombre 
-                </FormDescription>
+                <FormDescription>Nombre</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -77,7 +131,7 @@ export function StoreCreateForm() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name="address"
+            name="storeAddress"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Direccion</FormLabel>
@@ -88,16 +142,14 @@ export function StoreCreateForm() {
                     className="bg-gray-50"
                   />
                 </FormControl>
-                <FormDescription>
-                  Direccion de la tienda
-                </FormDescription>
+                <FormDescription>Direccion de la tienda</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
             control={form.control}
-            name="phone"
+            name="storePhone"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Telefono</FormLabel>
@@ -119,7 +171,7 @@ export function StoreCreateForm() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name="email"
+            name="storeEmail"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
@@ -130,22 +182,31 @@ export function StoreCreateForm() {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                   Email de la tienda
-                </FormDescription>
+                <FormDescription>Email de la tienda</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-       
-       
-        <Button type="submit" >
-          Agregar 
-        </Button>
-      </form>
 
-      {/* Alertas de estado
+        {/* Botón de submit */}
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cargando...
+              </span>
+            ) : (
+              "Crear Usuario"
+            )}
+          </Button>
+        </div>
+      </form>
       <div className="mt-5 space-y-3">
         {error && (
           <Alert variant="destructive">
@@ -155,14 +216,14 @@ export function StoreCreateForm() {
         )}
 
         {mensaje && (
-          <Alert className="border-green-200 bg-green-50">
+          <Alert className="border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
               {mensaje}
             </AlertDescription>
           </Alert>
         )}
-      </div> */}
+      </div>
     </Form>
   );
 }

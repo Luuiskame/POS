@@ -9,6 +9,7 @@ export type userState = {
   users: User[];
   userLogin: User;
   isHydrated: boolean;
+  tempUserData: User | null;
 };
 
 export type productState = {
