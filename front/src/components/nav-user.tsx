@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { logoutUser } from "@/redux/features/userSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function NavUser({
   user,
@@ -99,9 +99,12 @@ export function NavUser({
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/select-store")}
+                className="flex items-center gap-2"
+              >
                 <Store />
-                <Link to="/dashboard/mis-negocios">Mis negocios</Link>
+                <span>Mis negocios</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />

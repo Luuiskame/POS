@@ -1,68 +1,63 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useForm } from "react-hook-form"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "@/redux/services/authApi"
-import { setUserLogin } from "@/redux/features/userSlice"
-import { useDispatch } from "react-redux"
-import { EyeClosed, EyeIcon } from "lucide-react"
-import React from "react"
+import { useLoginMutation } from "@/redux/services/authApi";
+import { handleLoginSuccess } from "@/redux/features/userSlice";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/redux/store";
+import { EyeClosed, EyeIcon } from "lucide-react";
+import React from "react";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [logInMutation] = useLoginMutation()
-  const { register, handleSubmit, formState: { errors } } = useForm<{
+  const dispatch = useDispatch<AppDispatch>();
+  const [logInMutation] = useLoginMutation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<{
     email: string;
     password: string;
   }>();
 
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const onSubmit = async (data: {email: string; password: string}) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     try {
-      const response = await logInMutation(data).unwrap()
+      const response = await logInMutation(data).unwrap();
       if (response?.user.id) {
-        const addActiveStoreToResponse = {
-          ...response.user,
-          activeStore: null
-        }
-        localStorage.setItem("tempUserData", JSON.stringify(addActiveStoreToResponse));
-        
-        if(response?.user.userStores !== undefined && response?.user.userStores.length > 1) {
-          console.log("Multiple stores found, redirecting to store selection");
+        dispatch(
+          handleLoginSuccess({
+            ...response.user,
+            activeStore: null,
+          })
+        );
+
+        // Verificar si necesita selección de tienda basado en el número de tiendas
+        if (response.user.userStores && response.user.userStores.length > 1) {
           navigate("/select-store");
         } else {
-          const activeStore = response.user.userStores?.[0] || null;
-          const addActiveStoreToResponse = {
-          ...response.user,
-          activeStore: null
-        }
-          dispatch(setUserLogin(addActiveStoreToResponse));
-          localStorage.setItem("userLogin", JSON.stringify(addActiveStoreToResponse));
-          localStorage.removeItem("tempUserData");
-          if (activeStore) {
-            localStorage.setItem("activeStore", JSON.stringify(activeStore));
-          }
           navigate("/dashboard");
         }
       }
     } catch (error) {
       console.log("Login failed:", error);
     }
-  }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -86,7 +81,11 @@ export function LoginForm({
                     required
                     {...register("email", { required: "Email es requerido" })}
                   />
-                  {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
+                  {errors.email && (
+                    <span className="text-red-500 text-sm">
+                      {errors.email.message}
+                    </span>
+                  )}
                 </div>
                 <div className="grid gap-3">
                   <div className="flex items-center">
@@ -98,23 +97,33 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                 <div className="relative flex items-center">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"}
-                    required 
-                    {...register("password", { required: "Contraseña es requerida" })}
-                  />
-                  {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
-                  <Button
-                    variant="outline"
-                    className="w-1/6"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeClosed className="h-4 w-4" /> : <EyeIcon  className="h-4 w-4" />}
-                  </Button>
-                    </div>
+                  <div className="relative flex items-center">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      {...register("password", {
+                        required: "Contraseña es requerida",
+                      })}
+                    />
+                    {errors.password && (
+                      <span className="text-red-500 text-sm">
+                        {errors.password.message}
+                      </span>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-1/6"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeClosed className="h-4 w-4" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full">
                   Login
