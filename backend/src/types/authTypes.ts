@@ -94,23 +94,6 @@ export interface AuthenticatedRequest extends Request {
     user?: JWTPayload;
 }
 
-// Para validaciones de roles
-export interface RolePermissions {
-    canAccessMultipleStores: boolean;
-    canManageUsers: boolean;
-    canManageProducts: boolean;
-    canViewReports: boolean;
-    canProcessTransactions: boolean;
-}
-
-// Helper type para verificar si un usuario tiene permisos
-export type RequiredRole = UserRole | UserRole[];
-
-// Helper para obtener el rol más alto de un usuario
-export interface UserHighestRole {
-    role: UserRole;
-    storeId?: string;
-}
 
 // Para contexto de tienda específica en requests
 export interface StoreContext {

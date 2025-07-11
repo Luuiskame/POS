@@ -14,7 +14,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction): vo
 
   if (!token) {
     res.status(401).json({ message: 'Token no proporcionado' });
-    return; // 👈🏼 Required to stop execution
+    return; 
   }
 
   try {
