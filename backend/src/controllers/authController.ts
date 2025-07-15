@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/authServices';
 import { AuthUser, RegisterCredentials, LoginCredentials } from '../types/authTypes';
 import { setAuthCookies } from '../utils/jwt';
-import { UserService } from '../services/userServices';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -109,6 +108,34 @@ export const logout = async (req: Request, res: Response) => {
     console.error('Error en logout:', error.message);
     res.status(500).json({
       message: error.message || 'Error al cerrar sesión'
+    });
+  }
+}
+
+export const setActiveStore = async (req: Request, res: Response) => {
+  try {
+    const { storeId, userId } = req.body;
+
+    if (!storeId) {
+      res.status(400).json({
+        message: 'ID de tienda es requerido'
+      });
+      return;
+    }
+
+    const updatedUser = await AuthService.setActiveStore(userId, storeId);
+
+    setAuthCookies(res, updatedUser)
+
+    // 2. Return success response
+    res.status(200).json({
+      message: 'Tienda activa actualizada exitosamente',
+    });
+
+  } catch (error: any) {
+    console.error('Error en setActiveStore:', error.message);
+    res.status(500).json({
+      message: error.message || 'Error al actualizar tienda activa'
     });
   }
 }
