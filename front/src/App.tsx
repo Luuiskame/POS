@@ -10,7 +10,11 @@ import Nuevo from "./Pages/Productos/Nuevo";
 import MainUsers from "./components/Usuarios/Main";
 import { AdminUsersPage } from "./Pages/Usuarios/Nuevo";
 import { useSelector } from "react-redux";
-import { selectIsHydrated, selectUserLogin } from "@/redux/features/userSlice";
+import {
+  selectIsHydrated,
+  selectUserLogin,
+  selectTempUserData,
+} from "@/redux/features/userSlice";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { AuthProvider } from "./components/Control/AuthProvider";
@@ -27,9 +31,8 @@ const ProtectedRoute = ({
   roles?: string[];
 }) => {
   const user = useSelector(selectUserLogin);
+  const tempUser = useSelector(selectTempUserData);
   const isHydrated = useSelector(selectIsHydrated);
-
-  console.log("user", user);
 
   if (!isHydrated) {
     return (
@@ -39,12 +42,15 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!user) {
+  // El usuario está "autenticado" si existe el usuario final o el temporal para la selección de tienda.
+  const activeUser = user || tempUser;
+
+  if (!activeUser) {
     return <Navigate to="/" replace />;
   }
 
   if (roles) {
-    const hasRequiredRole = user.userStores?.some((store) =>
+    const hasRequiredRole = activeUser.userStores?.some((store) =>
       roles.includes(store.role.toLowerCase())
     );
 

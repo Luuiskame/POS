@@ -85,36 +85,33 @@ const userSlice = createSlice({
 
 // Thunks para manejar la lógica compleja
 export const handleLoginSuccess =
-  (userData: User): AppThunk =>
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-  (dispatch, getState) => {
-    // Paso 1: Guardar datos temporales para selección de tienda
-    const userWithActiveStore = {
-      ...userData,
-      activeStore: null,
-    };
-    
-    dispatch(userSlice.actions.setTempUserData(userWithActiveStore));
-    dispatch(userSlice.actions.persistUserData());
+  (userData: User): AppThunk<Promise<{ needsStoreSelection: boolean }>> =>
+  async (dispatch) => {
 
-    // Paso 2: Verificar si necesita selección de tienda
-    if (userData.userStores && userData.userStores.length > 1) {
-      return { needsStoreSelection: true };
+    console.log("userData en handleLoginSuccess:", userData);
+    const needsStoreSelection =
+      !!(userData.userStores && userData.userStores.length > 1);
+
+    if (needsStoreSelection) {
+      // Solo necesitamos guardar datos temporales para la página de selección de tienda
+      const userForSelection = { ...userData, activeStore: null };
+      dispatch(userSlice.actions.setTempUserData(userForSelection));
+    } else {
+      // Iniciar sesión del usuario directamente con la primera tienda como activa
+      const activeStore = userData.userStores?.[0] || null;
+      const userToLogin = { ...userData, activeStore };
+      dispatch(userSlice.actions.setUserLogin(userToLogin));
+      if (activeStore) {
+        dispatch(userSlice.actions.persistActiveStore(activeStore));
+      }
+      // Limpiar datos temporales por si acaso
+      dispatch(userSlice.actions.clearTempUserData());
     }
 
-    // Paso 3: Si solo tiene una tienda, establecerla automáticamente
-    const activeStore = userData.userStores?.[0] || null;
-    dispatch(userSlice.actions.setUserLogin(userWithActiveStore));
-    
-    if (activeStore) {
-      dispatch(userSlice.actions.setActiveStore(activeStore));
-      dispatch(userSlice.actions.persistActiveStore(activeStore));
-    }
-    
-    dispatch(userSlice.actions.clearTempUserData());
+    // Persistir el estado actualizado (userLogin o tempUserData)
     dispatch(userSlice.actions.persistUserData());
-    
-    return { needsStoreSelection: false };
+
+    return { needsStoreSelection };
   };
 
 export const hydrateUser = (): AppThunk => (dispatch) => {

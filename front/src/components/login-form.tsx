@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/redux/services/authApi";
 import { handleLoginSuccess } from "@/redux/features/userSlice";
 import { useDispatch } from "react-redux";
@@ -22,9 +21,8 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const [logInMutation] = useLoginMutation();
+  const [logInMutation, { isLoading }] = useLoginMutation();
   const {
     register,
     handleSubmit,
@@ -40,19 +38,9 @@ export function LoginForm({
     try {
       const response = await logInMutation(data).unwrap();
       if (response?.user.id) {
-        dispatch(
-          handleLoginSuccess({
-            ...response.user,
-            activeStore: null,
-          })
-        );
-
-        // Verificar si necesita selección de tienda basado en el número de tiendas
-        if (response.user.userStores && response.user.userStores.length > 1) {
-          navigate("/select-store");
-        } else {
-          navigate("/dashboard");
-        }
+        console.log("Login success:", response);
+        // La navegación ahora se maneja en el componente de la página (LoginPage)
+        dispatch(handleLoginSuccess(response.user));
       }
     } catch (error) {
       console.log("Login failed:", error);
@@ -126,7 +114,7 @@ export function LoginForm({
                   </div>
                 </div>
                 <Button type="submit" className="w-full">
-                  Login
+               {isLoading ? "Loading..." : "Login"}
                 </Button>
               </div>
             </div>

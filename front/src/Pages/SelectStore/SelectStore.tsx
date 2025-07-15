@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import {
-  selectUserLogin,
+  selectTempUserData,
   completeLoginWithStore,
 } from "@/redux/features/userSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,7 +24,7 @@ export function StoreSelector({
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const user = useSelector(selectUserLogin);
+  const user = useSelector(selectTempUserData);
   const [userStores, setUserStores] = React.useState<Stores[]>([]);
   const [selectedStore, setSelectedStore] = React.useState<Stores | null>(null);
 
@@ -32,6 +32,7 @@ export function StoreSelector({
     if (user && user.userStores) {
       setUserStores(user.userStores);
     } else {
+      // Si no hay datos de usuario (ni siquiera temporales), redirigir al login.
       navigate("/");
     }
   }, [user, navigate]);
@@ -42,14 +43,14 @@ export function StoreSelector({
 
   const handleContinue = () => {
     if (selectedStore && user) {
-      // Actualizar el usuario con la tienda activa usando una sola acción
-      const updatedUser = {
+      // Construir el objeto de usuario final con la tienda seleccionada
+      const finalUser = {
         ...user,
         activeStore: selectedStore,
       };
 
-      // Dispatch de la acción completa
-      dispatch(completeLoginWithStore(selectedStore, updatedUser));
+      // Despachar la acción que moverá los datos de tempUser a userLogin
+      dispatch(completeLoginWithStore(selectedStore, finalUser));
 
       navigate("/dashboard");
     }
