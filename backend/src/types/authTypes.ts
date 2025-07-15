@@ -47,6 +47,7 @@ export interface JWTPayload {
         role: UserRole;
         isActive: boolean;
     }[];
+    activeStore? : UserStoreInfo     
     iat?: number; // issued at
     exp?: number; // expires at
 }

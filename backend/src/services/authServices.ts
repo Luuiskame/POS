@@ -226,4 +226,52 @@ export class AuthService {
       throw error;
     }
   }
+
+  static async setActiveStore(userId: string, storeId: string): Promise<TokenPair> {
+    // Buscar el usuario con sus tiendas
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        userStores: {
+          include: {
+            store: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Validar que el storeId pertenece a las tiendas del usuario
+    const selectedStore = user.userStores.find((us) => us.storeId === storeId);
+    if (!selectedStore) {
+      throw new Error('Invalid store selection');
+    }
+
+    // Generar el nuevo payload con activeStore
+    const jwtPayload: Omit<JWTPayload, 'iat' | 'exp'> = {
+      userId: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userStores: user.userStores.map((us) => ({
+        storeId: us.storeId,
+        storeName: us.store.name,
+        role: us.role as UserRole,
+        isActive: us.isActive,
+      })),
+      activeStore: {
+        id: selectedStore.id,
+        storeId: selectedStore.storeId,
+        storeName: selectedStore.store.name,
+        role: selectedStore.role as UserRole,
+        isActive: selectedStore.isActive,
+      },
+    };
+
+    // Generar el nuevo par de tokens
+    return generateTokenPair(jwtPayload);
+  }
 }
