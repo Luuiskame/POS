@@ -17,6 +17,7 @@ import type { AppDispatch } from "@/redux/store";
 import { Store } from "lucide-react";
 import { Stores } from "@/types/types";
 import React from "react";
+import { useSetActiveStoreMutation } from "@/redux/services/storeApi";
 
 export function StoreSelector({
   className,
@@ -27,6 +28,7 @@ export function StoreSelector({
   const user = useSelector(selectTempUserData);
   const [userStores, setUserStores] = React.useState<Stores[]>([]);
   const [selectedStore, setSelectedStore] = React.useState<Stores | null>(null);
+  const [setActiveStore] = useSetActiveStoreMutation();
 
   React.useEffect(() => {
     if (user && user.userStores) {
@@ -41,10 +43,15 @@ export function StoreSelector({
     setSelectedStore(store);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
     if (selectedStore && user) {
       // Construir el objeto de usuario final con la tienda seleccionada
-      const finalUser = {
+
+      const response = await setActiveStore({
+        storeId: selectedStore.storeId, userId: user.id}).unwrap();
+
+        if(response.message === "Tienda activa actualizada exitosamente") {
+          const finalUser = {
         ...user,
         activeStore: selectedStore,
       };
@@ -53,6 +60,11 @@ export function StoreSelector({
       dispatch(completeLoginWithStore(selectedStore, finalUser));
 
       navigate("/dashboard");
+
+        }
+        
+        navigate("/")
+      
     }
   };
 

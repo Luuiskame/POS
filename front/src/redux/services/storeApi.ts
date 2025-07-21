@@ -23,7 +23,14 @@ export const storeApi = createApi({
                 };
             },
         }),
+        setActiveStore: builder.mutation<{message: string}, {storeId: string, userId: string}>({
+            query: ({storeId, userId}) => ({
+                url: '/auth/set-active-store',
+                method: 'POST',
+                body: { storeId, userId },
+            }),
+        }),
     }),
 });
 
-export const { useCreateStoresMutation } = storeApi;
+export const { useCreateStoresMutation, useSetActiveStoreMutation } = storeApi;
