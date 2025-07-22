@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import {
-  selectUserLogin,
+  selectTempUserData,
   completeLoginWithStore,
 } from "@/redux/features/userSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +17,7 @@ import type { AppDispatch } from "@/redux/store";
 import { Store } from "lucide-react";
 import { Stores } from "@/types/types";
 import React from "react";
+import { useSetActiveStoreMutation } from "@/redux/services/storeApi";
 
 export function StoreSelector({
   className,
@@ -24,14 +25,16 @@ export function StoreSelector({
 }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const user = useSelector(selectUserLogin);
+  const user = useSelector(selectTempUserData);
   const [userStores, setUserStores] = React.useState<Stores[]>([]);
   const [selectedStore, setSelectedStore] = React.useState<Stores | null>(null);
+  const [setActiveStoreMutation] = useSetActiveStoreMutation();
 
   React.useEffect(() => {
     if (user && user.userStores) {
       setUserStores(user.userStores);
     } else {
+      // Si no hay datos de usuario (ni siquiera temporales), redirigir al login.
       navigate("/");
     }
   }, [user, navigate]);
@@ -40,18 +43,29 @@ export function StoreSelector({
     setSelectedStore(store);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
     if (selectedStore && user) {
-      // Actualizar el usuario con la tienda activa usando una sola acción
-      const updatedUser = {
+      // Construir el objeto de usuario final con la tienda seleccionada
+
+      const response = await setActiveStoreMutation({
+        storeId: selectedStore.storeId, userId: user.id}).unwrap();
+        
+        if(response.message === "Tienda activa actualizada exitosamente") {
+          console.log("Response from setActiveStore:", response);
+          const finalUser = {
         ...user,
         activeStore: selectedStore,
       };
 
-      // Dispatch de la acción completa
-      dispatch(completeLoginWithStore(selectedStore, updatedUser));
+      // Despachar la acción que moverá los datos de tempUser a userLogin
+      dispatch(completeLoginWithStore(selectedStore, finalUser));
 
       navigate("/dashboard");
+
+        }
+        
+        navigate("/")
+      
     }
   };
 
