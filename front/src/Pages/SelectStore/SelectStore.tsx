@@ -28,7 +28,7 @@ export function StoreSelector({
   const user = useSelector(selectTempUserData);
   const [userStores, setUserStores] = React.useState<Stores[]>([]);
   const [selectedStore, setSelectedStore] = React.useState<Stores | null>(null);
-  const [setActiveStore] = useSetActiveStoreMutation();
+  const [setActiveStoreMutation] = useSetActiveStoreMutation();
 
   React.useEffect(() => {
     if (user && user.userStores) {
@@ -47,10 +47,11 @@ export function StoreSelector({
     if (selectedStore && user) {
       // Construir el objeto de usuario final con la tienda seleccionada
 
-      const response = await setActiveStore({
+      const response = await setActiveStoreMutation({
         storeId: selectedStore.storeId, userId: user.id}).unwrap();
-
+        
         if(response.message === "Tienda activa actualizada exitosamente") {
+          console.log("Response from setActiveStore:", response);
           const finalUser = {
         ...user,
         activeStore: selectedStore,

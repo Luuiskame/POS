@@ -160,3 +160,18 @@ export const extractTokenFromRequest = (req: any): string | null => {
   
   return null;
 };
+
+export const extractRefreshTokenFromRequest = (req: any): string | null => {
+  // Primero intentar desde cookies
+  if (req.cookies?.refreshToken) {
+    return req.cookies.refreshToken;
+  }
+  
+  // Fallback: desde Authorization header
+  // const authHeader = req.headers.authorization;
+  // if (authHeader && authHeader.startsWith('Bearer ')) {
+  //   return authHeader.substring(7);
+  // }
+  
+  return null;
+}

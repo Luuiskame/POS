@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/authServices';
 import { AuthUser, RegisterCredentials, LoginCredentials } from '../types/authTypes';
-import { setAuthCookies } from '../utils/jwt';
+import { setAuthCookies, extractRefreshTokenFromRequest } from '../utils/jwt';
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -140,4 +140,32 @@ export const setActiveStore = async (req: Request, res: Response) => {
   }
 }
 
+export const refreshToken = async (req: Request, res: Response) => {
+  const token = extractRefreshTokenFromRequest(req);
 
+    if (!token) {
+      res.status(401).json({
+        message: 'Token de actualización no proporcionado'
+      });
+      return;
+    }
+  try {
+
+
+    // Generar nuevos tokens
+    const tokens = await AuthService.refreshTokens(token);
+
+    setAuthCookies(res, tokens);
+
+    res.status(200).json({
+      message: 'Tokens updated successfully',
+      status: 'ok'
+    });
+
+  } catch (error: any) {
+    console.error('Error en refreshToken:', error.message);
+    res.status(401).json({
+      message: error.message || 'Token de actualización inválido'
+    });
+  }
+}

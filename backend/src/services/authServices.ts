@@ -8,7 +8,7 @@ import {
   UserRole,
   AuthUser,
 } from '../types/authTypes';
-import { generateTokenPair } from '../utils/jwt';
+import { generateTokenPair, verifyRefreshToken } from '../utils/jwt';
 
 export class AuthService {
   static async createUser(data: RegisterCredentials): Promise<AuthUser> {
@@ -274,4 +274,64 @@ export class AuthService {
     // Generar el nuevo par de tokens
     return generateTokenPair(jwtPayload);
   }
+
+  static async refreshTokens(refreshToken: string): Promise<TokenPair> {
+  // 1. Verificar el token
+  const payload = verifyRefreshToken(refreshToken);
+
+  // 2. Buscar el usuario con sus tiendas
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    include: {
+      userStores: {
+        include: {
+          store: true,
+        },
+      },
+    },
+  });
+
+  // 3. Validaciones
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (!user.isActive) {
+    throw new Error('User is inactive');
+  }
+
+  // 4. Preparar userStores y activeStore
+  const userStores = user.userStores.map((us) => ({
+    storeId: us.storeId,
+    storeName: us.store.name,
+    role: us.role,
+    isActive: us.isActive,
+  }));
+
+  const activeStore = user.userStores.find((us) => us.isActive);
+
+  // 5. Construir payload
+  const jwtPayload = {
+    userId: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    userStores,
+    activeStore: activeStore
+      ? {
+          id: activeStore.id,
+          storeId: activeStore.storeId,
+          storeName: activeStore.store.name,
+          role: activeStore.role,
+          isActive: activeStore.isActive,
+        }
+      : undefined,
+  };
+
+  // 6. Generar tokens
+  const newTokens = generateTokenPair(jwtPayload);
+
+  return newTokens;
+}
+
 }
