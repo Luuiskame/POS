@@ -1,17 +1,14 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { Stores } from "@/types/types";
+import { baseQueryWithReauth } from "./authApi";
 
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 type StoreApiResponse = Stores[];
 
 export const storeApi = createApi({
     reducerPath: 'storeApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: backendUrl,
-        credentials: 'include',
-    }),
+    baseQuery: baseQueryWithReauth,
     endpoints: (builder) => ({
         createStores: builder.mutation<StoreApiResponse, Stores>({
             query: (credentials: Stores) => {

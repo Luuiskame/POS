@@ -8,7 +8,7 @@ router.post("/login", login);
 router.get("/logout", logout);
 router.post("/register", createUser);
 router.post("/set-active-store", verifyToken, setActiveStore);
-router.get('/refresh-token', refreshToken);
+router.post('/refresh', refreshToken);
 // router.post("/create-store", createStore);
 // router.post("/create-superadmin", createSuperAdmin); 
 

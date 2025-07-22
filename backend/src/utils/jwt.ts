@@ -19,7 +19,7 @@ export const generateAccessToken = (
     throw new Error('JWT_ACCESS_SECRET no está configurado');
   }
 
-   const expiresIn = (process.env.JWT_ACCESS_EXPIRES_IN || '15m') as SignOptions['expiresIn'];
+   const expiresIn = '15m' as SignOptions['expiresIn'];
 
   const options: SignOptions = {
     expiresIn,

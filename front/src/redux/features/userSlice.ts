@@ -70,6 +70,7 @@ const userSlice = createSlice({
 
    
     persistActiveStore: (state, action: PayloadAction<Stores>) => {
+      console.log("Persisting active store:", state);
       localStorage.setItem("activeStore", JSON.stringify(action.payload));
     },
 

@@ -1,9 +1,10 @@
 import { User } from "@/types/types";
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi} from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./authApi";
 
 
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 
 type UserApiResponse = {
     user: User;
@@ -12,10 +13,7 @@ type UserApiResponse = {
 
 export const UserApi = createApi({
     reducerPath: 'UserApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: backendUrl,
-        credentials: 'include',
-    }),
+    baseQuery: baseQueryWithReauth,
     endpoints: (builder) => ({
         createUser: builder.mutation<UserApiResponse, User>({
             query: (credentials: User) => {
